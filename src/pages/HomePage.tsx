@@ -57,11 +57,11 @@ const HomePage = () => {
             </TabsTrigger>
             <TabsTrigger value="manhwa" className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center">
               <span>Currently reading</span>
-              <span className="bg-secondary px-2 py-0.5 rounded-full text-xs">{manhwaCount}</span>
+              
             </TabsTrigger>
             <TabsTrigger value="manga" className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center">
               <span>Planning to read</span>
-              <span className="bg-secondary px-2 py-0.5 rounded-full text-xs">{mangaCount}</span>
+              
             </TabsTrigger>
             <TabsTrigger value="completed" className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center">
               <span>Completed/Stopped</span>
