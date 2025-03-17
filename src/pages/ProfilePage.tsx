@@ -1,159 +1,141 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { 
-  Bell, BookOpen, Check, ChevronRight, 
-  Moon, LogOut, Settings, Sun, UserCircle 
+  Camera, ChevronRight, LogOut, User, Key, AlertTriangle
 } from "lucide-react";
 
 import AppHeader from "@/components/ui-components/AppHeader";
-import BottomNavigation from "@/components/ui-components/BottomNavigation";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { mockManga, mockCollections } from "@/data/mockData";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { mockCollections } from "@/data/mockData";
 
 const ProfilePage = () => {
-  const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("Guest User");
+  const [email, setEmail] = useState("guest@example.com");
+  const [editing, setEditing] = useState(false);
   
-  // Stats calculations
-  const totalManga = mockManga.length;
-  const inProgress = mockManga.filter(m => !m.isCompleted).length;
-  const completed = mockManga.filter(m => m.isCompleted).length;
-  
-  const handleToggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    // In a real app, this would also update the theme
-  };
-  
-  const handleToggleNotifications = () => {
-    setNotifications(!notifications);
-    // In a real app, this would update notification settings
+  const handleSaveProfile = () => {
+    setEditing(false);
+    // In a real app, this would save the profile
+    console.log("Saved profile:", { username, email });
   };
   
   return (
     <div className="min-h-screen pb-20 animate-fadeIn">
       <AppHeader 
-        title="Profile" 
-        showBackButton={false} 
+        title="Profile Settings" 
+        showBackButton={true} 
         showSearch={false}
         showSettings={false}
+        showFilter={false}
       />
       
       <main className="container px-4 py-6 space-y-8">
         {/* User Info Section */}
-        <section className="flex items-center animate-slideDown">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src="https://picsum.photos/seed/user/200" alt="User" />
-            <AvatarFallback>
-              <UserCircle className="w-12 h-12 text-muted-foreground" />
-            </AvatarFallback>
-          </Avatar>
+        <section className="flex flex-col items-center animate-slideDown">
+          <div className="relative">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src="https://picsum.photos/seed/user/200" alt="User" />
+              <AvatarFallback>
+                <User className="w-12 h-12 text-muted-foreground" />
+              </AvatarFallback>
+            </Avatar>
+            
+            <button className="absolute bottom-0 right-0 bg-accent rounded-full p-1.5 text-white">
+              <Camera className="w-4 h-4" />
+            </button>
+          </div>
           
-          <div className="ml-4">
-            <h2 className="text-xl font-medium">Guest User</h2>
-            <p className="text-sm text-muted-foreground">guest@example.com</p>
+          <div className="w-full mt-6 space-y-4">
+            {editing ? (
+              <>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Username</label>
+                  <Input 
+                    value={username} 
+                    onChange={(e) => setUsername(e.target.value)} 
+                    className="w-full"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Email</label>
+                  <Input 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    type="email"
+                    className="w-full"
+                  />
+                </div>
+                
+                <Button 
+                  className="w-full bg-accent hover:bg-accent/90 text-white" 
+                  onClick={handleSaveProfile}
+                >
+                  Save Profile
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="text-center">
+                  <h2 className="text-xl font-medium">{username}</h2>
+                  <p className="text-sm text-muted-foreground">{email}</p>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => setEditing(true)}
+                >
+                  Edit Profile
+                </Button>
+              </>
+            )}
           </div>
         </section>
         
-        {/* Reading Progress Section */}
-        <section className="grid grid-cols-3 gap-4 animate-slideUp" style={{ animationDelay: "0.1s" }}>
-          <div className="p-4 bg-card border border-border rounded-lg text-center">
-            <p className="text-2xl font-medium">{totalManga}</p>
-            <p className="text-xs text-muted-foreground mt-1">Total Manga</p>
-          </div>
-          
-          <div className="p-4 bg-card border border-border rounded-lg text-center">
-            <p className="text-2xl font-medium">{inProgress}</p>
-            <p className="text-xs text-muted-foreground mt-1">In Progress</p>
-          </div>
-          
-          <div className="p-4 bg-card border border-border rounded-lg text-center">
-            <p className="text-2xl font-medium">{completed}</p>
-            <p className="text-xs text-muted-foreground mt-1">Completed</p>
-          </div>
-        </section>
+        <Separator />
         
-        {/* Collections Section */}
-        <section className="animate-slideUp" style={{ animationDelay: "0.2s" }}>
-          <h3 className="text-lg font-medium mb-3">Collections</h3>
+        {/* Account Management Section */}
+        <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.1s" }}>
+          <h3 className="text-lg font-medium">Account Management</h3>
           
           <div className="space-y-2">
-            {mockCollections.map(collection => (
-              <Link
-                key={collection.id}
-                to={`/collections/${collection.id}`}
-                className="flex items-center justify-between p-3 bg-card border border-border rounded-lg"
-              >
-                <span className="font-medium">{collection.name}</span>
-                <div className="flex items-center text-muted-foreground">
-                  <span className="text-sm mr-1">{collection.mangaIds.length}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </Link>
-            ))}
+            <button className="w-full p-3 text-left bg-card border border-border rounded-lg flex items-center justify-between">
+              <div className="flex items-center">
+                <Key className="w-5 h-5 mr-3 text-accent" />
+                <span>Change Password</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
             
-            <Link
-              to="/collections/new"
-              className="flex items-center justify-center p-3 bg-secondary/50 border border-dashed border-border rounded-lg text-muted-foreground"
-            >
-              <span className="text-sm">Create New Collection</span>
-            </Link>
+            <button className="w-full p-3 text-left bg-destructive/10 text-destructive border border-destructive/20 rounded-lg flex items-center justify-between">
+              <div className="flex items-center">
+                <AlertTriangle className="w-5 h-5 mr-3" />
+                <span>Delete Account</span>
+              </div>
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </section>
         
-        {/* Settings Section */}
-        <section className="space-y-2 animate-slideUp" style={{ animationDelay: "0.3s" }}>
-          <h3 className="text-lg font-medium mb-3">Settings</h3>
-          
-          <div className="p-3 bg-card border border-border rounded-lg flex items-center justify-between">
-            <div className="flex items-center">
-              {darkMode ? <Moon className="w-5 h-5 mr-3" /> : <Sun className="w-5 h-5 mr-3" />}
-              <span>Dark Mode</span>
-            </div>
-            <Switch checked={darkMode} onCheckedChange={handleToggleDarkMode} />
-          </div>
-          
-          <div className="p-3 bg-card border border-border rounded-lg flex items-center justify-between">
-            <div className="flex items-center">
-              <Bell className="w-5 h-5 mr-3" />
-              <span>Notifications</span>
-            </div>
-            <Switch checked={notifications} onCheckedChange={handleToggleNotifications} />
-          </div>
-          
-          <Link
-            to="/reading-history"
-            className="p-3 bg-card border border-border rounded-lg flex items-center justify-between"
-          >
-            <div className="flex items-center">
-              <BookOpen className="w-5 h-5 mr-3" />
-              <span>Reading History</span>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </Link>
-          
-          <Link
-            to="/account-settings"
-            className="p-3 bg-card border border-border rounded-lg flex items-center justify-between"
-          >
-            <div className="flex items-center">
-              <Settings className="w-5 h-5 mr-3" />
-              <span>Account Settings</span>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </Link>
-          
-          <button
-            className="w-full p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-lg flex items-center justify-center mt-4"
+        <Separator />
+        
+        {/* Logout */}
+        <section className="pt-4 animate-slideUp" style={{ animationDelay: "0.3s" }}>
+          <Button 
+            variant="destructive" 
+            className="w-full flex items-center justify-center"
           >
             <LogOut className="w-5 h-5 mr-2" />
             <span>Log Out</span>
-          </button>
+          </Button>
         </section>
       </main>
-      
-      <BottomNavigation />
     </div>
   );
 };

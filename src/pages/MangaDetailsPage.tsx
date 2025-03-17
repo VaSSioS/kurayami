@@ -1,18 +1,22 @@
 
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { BookOpen, Download, Bookmark, ChevronRight, ChevronDown } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { BookOpen, Download, Bookmark, ChevronRight, ChevronDown, Check } from "lucide-react";
 
 import AppHeader from "@/components/ui-components/AppHeader";
 import BottomNavigation from "@/components/ui-components/BottomNavigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { mockManga } from "@/data/mockData";
+import { mockManga, mockCollections } from "@/data/mockData";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const MangaDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [expandSynopsis, setExpandSynopsis] = useState(false);
+  const [showCollectionDialog, setShowCollectionDialog] = useState(false);
+  const [downloadedChapters, setDownloadedChapters] = useState<string[]>([]);
   
   // Find the manga by ID from mock data
   const manga = mockManga.find(m => m.id === id);
@@ -42,8 +46,26 @@ const MangaDetailsPage = () => {
     title: `Chapter ${i + 1}`,
     releaseDate: new Date(Date.now() - (i * 7 * 24 * 60 * 60 * 1000)), // One week apart
     isRead: manga.currentChapter ? i + 1 <= manga.currentChapter : false,
-    isDownloaded: Math.random() > 0.7,
+    isDownloaded: downloadedChapters.includes(`ch${i + 1}`) || Math.random() > 0.7,
   }));
+  
+  const handleDownloadChapter = (chapterId: string) => {
+    if (!downloadedChapters.includes(chapterId)) {
+      setDownloadedChapters([...downloadedChapters, chapterId]);
+      // In a real app, this would trigger a download
+      console.log(`Downloaded chapter ${chapterId}`);
+    }
+  };
+  
+  const handleAddToCollection = () => {
+    setShowCollectionDialog(true);
+  };
+  
+  const handleSelectCollection = (collectionId: string) => {
+    // In a real app, this would add the manga to the collection
+    console.log(`Added manga ${manga.id} to collection ${collectionId}`);
+    setShowCollectionDialog(false);
+  };
   
   return (
     <div className="min-h-screen pb-20 animate-fadeIn bg-background">
@@ -51,6 +73,8 @@ const MangaDetailsPage = () => {
         title={manga.title}
         showBackButton={true}
         showSearch={false}
+        showSettings={true}
+        showProfile={false}
       />
       
       <main className="container px-4 py-6 space-y-6">
@@ -110,10 +134,14 @@ const MangaDetailsPage = () => {
               
               <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex-1 sm:flex-none">
                 <Download className="w-4 h-4 mr-2" />
-                Download
+                Download All
               </Button>
               
-              <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex-1 sm:flex-none">
+              <Button 
+                variant="outline" 
+                className="border-accent text-accent hover:bg-accent/10 flex-1 sm:flex-none"
+                onClick={handleAddToCollection}
+              >
                 <Bookmark className="w-4 h-4 mr-2" />
                 Add to Collection
               </Button>
@@ -141,35 +169,70 @@ const MangaDetailsPage = () => {
           <h2 className="text-lg font-semibold">Chapters</h2>
           
           <div className="space-y-2">
-            {chapters.map((chapter, index) => (
-              <Link 
+            {chapters.map((chapter) => (
+              <div 
                 key={chapter.id}
-                to={`/manga/${manga.id}/chapter/${chapter.number}`}
                 className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
                   chapter.isRead 
                     ? 'bg-secondary/30 border-border text-muted-foreground' 
                     : 'bg-card border-border hover:border-accent'
                 }`}
               >
-                <div className="flex items-center">
+                <Link 
+                  to={`/manga/${manga.id}/chapter/${chapter.number}`}
+                  className="flex-1 flex items-center"
+                >
                   <div className={`w-1.5 h-1.5 rounded-full mr-2 ${chapter.isRead ? 'bg-muted-foreground' : 'bg-accent animate-pulse'}`}></div>
                   <span className="font-medium">{chapter.title}</span>
-                </div>
+                </Link>
                 
                 <div className="flex items-center space-x-3">
                   <span className="text-xs text-muted-foreground">
                     {chapter.releaseDate.toLocaleDateString()}
                   </span>
                   
-                  {chapter.isDownloaded && (
-                    <Download className="w-4 h-4 text-muted-foreground" />
-                  )}
+                  <button
+                    onClick={() => handleDownloadChapter(chapter.id)}
+                    className="p-1"
+                  >
+                    {chapter.isDownloaded || downloadedChapters.includes(chapter.id) ? (
+                      <Check className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Download className="w-4 h-4 text-muted-foreground hover:text-accent" />
+                    )}
+                  </button>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
       </main>
+      
+      <Dialog open={showCollectionDialog} onOpenChange={setShowCollectionDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add to Collection</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-2">
+            {mockCollections.map(collection => (
+              <button
+                key={collection.id}
+                className="w-full p-3 text-left bg-card border border-border rounded-lg hover:border-accent transition-colors"
+                onClick={() => handleSelectCollection(collection.id)}
+              >
+                {collection.name}
+              </button>
+            ))}
+            
+            <Link 
+              to="/profile" 
+              className="w-full p-3 text-center bg-secondary/50 border border-dashed border-border rounded-lg text-muted-foreground block mt-4"
+            >
+              Create New Collection
+            </Link>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       <BottomNavigation />
     </div>

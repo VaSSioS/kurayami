@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Download, User, History } from "lucide-react";
+import { Home, Download, Settings, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItemProps {
@@ -58,10 +58,10 @@ const BottomNavigation = () => {
           isActive={isActive("/history")} 
         />
         <NavItem 
-          to="/profile" 
-          icon={User} 
-          label="Profile" 
-          isActive={isActive("/profile")} 
+          to="/settings" 
+          icon={Settings} 
+          label="Settings" 
+          isActive={isActive("/settings")} 
         />
       </div>
     </nav>

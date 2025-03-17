@@ -11,6 +11,8 @@ import ProfilePage from "./pages/ProfilePage";
 import HistoryPage from "./pages/HistoryPage";
 import SettingsPage from "./pages/SettingsPage";
 import MangaDetailsPage from "./pages/MangaDetailsPage";
+import DownloadsPage from "./pages/DownloadsPage";
+import FilterPage from "./pages/FilterPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,9 +33,10 @@ const App = () => (
           <Route path="/manga/:id/chapter/:chapterId" element={<HomePage />} /> {/* Placeholder */}
           <Route path="/collections/:id" element={<HomePage />} /> {/* Placeholder */}
           <Route path="/continue-reading" element={<HistoryPage />} />
-          <Route path="/downloads" element={<HomePage />} /> {/* Placeholder */}
+          <Route path="/downloads" element={<DownloadsPage />} />
+          <Route path="/filter" element={<FilterPage />} />
           <Route path="/reading-history" element={<HistoryPage />} />
-          <Route path="/account-settings" element={<SettingsPage />} />
+          <Route path="/account-settings" element={<ProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

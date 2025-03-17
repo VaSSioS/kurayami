@@ -1,8 +1,9 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
-  Bell, FileQuestion, Globe, HelpCircle, LogOut, 
-  Moon, Palette, Shield, Sun, User, X
+  Bell, FileQuestion, Globe, HelpCircle, Moon, 
+  Palette, Shield, Sun, X, AlertTriangle
 } from "lucide-react";
 
 import AppHeader from "@/components/ui-components/AppHeader";
@@ -10,31 +11,41 @@ import BottomNavigation from "@/components/ui-components/BottomNavigation";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const SettingsPage = () => {
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
+  const [mangaUpdates, setMangaUpdates] = useState(true);
   const [fontScale, setFontScale] = useState([100]);
   const [accentColor, setAccentColor] = useState("red");
+  const [language, setLanguage] = useState("english");
   
   const handleToggleDarkMode = () => {
     setDarkMode(!darkMode);
     // In a real app, this would update the theme
+    document.documentElement.classList.toggle('dark', !darkMode);
   };
   
   const handleToggleNotifications = () => {
     setNotifications(!notifications);
-    // In a real app, this would update notification settings
+  };
+  
+  const handleToggleMangaUpdates = () => {
+    setMangaUpdates(!mangaUpdates);
   };
   
   const handleFontSizeChange = (value: number[]) => {
     setFontScale(value);
-    // In a real app, this would update the font size
   };
   
   const handleAccentColorChange = (color: string) => {
     setAccentColor(color);
-    // In a real app, this would update the accent color
+  };
+  
+  const handleLanguageChange = (value: string) => {
+    setLanguage(value);
   };
   
   // Available accent colors
@@ -53,12 +64,13 @@ const SettingsPage = () => {
         showBackButton={true}
         showSearch={false}
         showSettings={false}
+        showFilter={false}
       />
       
       <main className="container px-4 py-6 space-y-6">
         {/* Theme and Display Section */}
         <section className="space-y-4 animate-slideDown">
-          <h2 className="text-lg font-medium mb-2">Theme & Display</h2>
+          <h2 className="text-lg font-medium mb-2">Customization & Preferences</h2>
           
           <div className="p-4 bg-card border border-border rounded-lg flex items-center justify-between">
             <div className="flex items-center">
@@ -108,10 +120,66 @@ const SettingsPage = () => {
               className="mt-2"
             />
           </div>
+          
+          <div className="p-4 bg-card border border-border rounded-lg flex items-center justify-between">
+            <div className="flex items-center">
+              <Globe className="w-5 h-5 mr-3 text-accent" />
+              <span>Language</span>
+            </div>
+            <Select value={language} onValueChange={handleLanguageChange}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="english">English</SelectItem>
+                <SelectItem value="spanish">Spanish</SelectItem>
+                <SelectItem value="french">French</SelectItem>
+                <SelectItem value="german">German</SelectItem>
+                <SelectItem value="japanese">Japanese</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </section>
         
-        {/* Notification Preferences */}
+        <Separator />
+        
+        {/* Privacy and Security */}
         <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.1s" }}>
+          <h2 className="text-lg font-medium mb-2">Privacy & Security</h2>
+          
+          <div className="p-4 bg-card border border-border rounded-lg flex items-center justify-between">
+            <div className="flex items-center">
+              <Shield className="w-5 h-5 mr-3 text-accent" />
+              <span>Privacy Policy</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </div>
+          
+          <button
+            className="w-full p-4 bg-card border border-border rounded-lg flex items-center justify-between"
+          >
+            <div className="flex items-center">
+              <X className="w-5 h-5 mr-3 text-accent" />
+              <span>Clear Reading History</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+          
+          <button
+            className="w-full p-4 bg-card border border-border rounded-lg flex items-center justify-between"
+          >
+            <div className="flex items-center">
+              <AlertTriangle className="w-5 h-5 mr-3 text-accent" />
+              <span>Manage Connected Devices</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </section>
+        
+        <Separator />
+        
+        {/* Notification Preferences */}
+        <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.2s" }}>
           <h2 className="text-lg font-medium mb-2">Notifications</h2>
           
           <div className="p-4 bg-card border border-border rounded-lg flex items-center justify-between">
@@ -121,61 +189,19 @@ const SettingsPage = () => {
             </div>
             <Switch checked={notifications} onCheckedChange={handleToggleNotifications} />
           </div>
-        </section>
-        
-        {/* Language and Region */}
-        <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.2s" }}>
-          <h2 className="text-lg font-medium mb-2">Language & Region</h2>
           
           <div className="p-4 bg-card border border-border rounded-lg flex items-center justify-between">
             <div className="flex items-center">
-              <Globe className="w-5 h-5 mr-3 text-accent" />
-              <span>Language</span>
+              <span className="ml-8">Manga Updates</span>
             </div>
-            <div className="flex items-center text-muted-foreground">
-              <span>English</span>
-            </div>
+            <Switch checked={mangaUpdates} onCheckedChange={handleToggleMangaUpdates} />
           </div>
         </section>
         
-        {/* Account Settings */}
-        <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.3s" }}>
-          <h2 className="text-lg font-medium mb-2">Account</h2>
-          
-          <Link
-            to="/account-settings"
-            className="p-4 bg-card border border-border rounded-lg flex items-center justify-between"
-          >
-            <div className="flex items-center">
-              <User className="w-5 h-5 mr-3 text-accent" />
-              <span>Profile Settings</span>
-            </div>
-          </Link>
-        </section>
-        
-        {/* Privacy and Data */}
-        <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.4s" }}>
-          <h2 className="text-lg font-medium mb-2">Privacy & Data</h2>
-          
-          <div className="p-4 bg-card border border-border rounded-lg flex items-center justify-between">
-            <div className="flex items-center">
-              <Shield className="w-5 h-5 mr-3 text-accent" />
-              <span>Privacy Policy</span>
-            </div>
-          </div>
-          
-          <button
-            className="w-full p-4 bg-card border border-border rounded-lg flex items-center justify-between"
-          >
-            <div className="flex items-center">
-              <X className="w-5 h-5 mr-3 text-accent" />
-              <span>Clear App Data</span>
-            </div>
-          </button>
-        </section>
+        <Separator />
         
         {/* Help and Support */}
-        <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.5s" }}>
+        <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.3s" }}>
           <h2 className="text-lg font-medium mb-2">Help & Support</h2>
           
           <div className="p-4 bg-card border border-border rounded-lg flex items-center justify-between">
@@ -183,13 +209,15 @@ const SettingsPage = () => {
               <FileQuestion className="w-5 h-5 mr-3 text-accent" />
               <span>FAQs</span>
             </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </div>
           
           <div className="p-4 bg-card border border-border rounded-lg flex items-center justify-between">
             <div className="flex items-center">
               <HelpCircle className="w-5 h-5 mr-3 text-accent" />
-              <span>Contact Support</span>
+              <span>Report a Problem</span>
             </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </div>
           
           <div className="p-4 bg-card border border-border rounded-lg flex items-center justify-between">
@@ -202,8 +230,10 @@ const SettingsPage = () => {
           </div>
         </section>
         
+        <Separator />
+        
         {/* Logout */}
-        <section className="pt-4 animate-slideUp" style={{ animationDelay: "0.6s" }}>
+        <section className="pt-4 animate-slideUp" style={{ animationDelay: "0.4s" }}>
           <Button 
             variant="destructive" 
             className="w-full flex items-center justify-center"
