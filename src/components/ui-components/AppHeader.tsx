@@ -27,9 +27,7 @@ const AppHeader = ({
   const isHomePage = location.pathname === "/";
   return <header className={cn("sticky top-0 z-50 w-full py-3 px-4 flex items-center justify-between bg-background/80 backdrop-blur-lg border-b border-border", className)}>
       <div className="flex items-center space-x-3">
-        {showBackButton && <button onClick={() => navigate(-1)} className="p-1">
-            <ChevronLeft className="w-5 h-5" />
-          </button>}
+        {showBackButton}
         
         {title && <div className="flex items-center">
             <h1 className="text-lg font-medium">{title}</h1>
