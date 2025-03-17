@@ -11,6 +11,7 @@ import ProfilePage from "./pages/ProfilePage";
 import HistoryPage from "./pages/HistoryPage";
 import SettingsPage from "./pages/SettingsPage";
 import MangaDetailsPage from "./pages/MangaDetailsPage";
+import ChapterReadingPage from "./pages/ChapterReadingPage";
 import DownloadsPage from "./pages/DownloadsPage";
 import FilterPage from "./pages/FilterPage";
 import NotFound from "./pages/NotFound";
@@ -30,7 +31,7 @@ const App = () => (
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/manga/:id" element={<MangaDetailsPage />} />
-          <Route path="/manga/:id/chapter/:chapterId" element={<HomePage />} /> {/* Placeholder */}
+          <Route path="/manga/:id/chapter/:chapterId" element={<ChapterReadingPage />} />
           <Route path="/collections/:id" element={<HomePage />} /> {/* Placeholder */}
           <Route path="/continue-reading" element={<HistoryPage />} />
           <Route path="/downloads" element={<DownloadsPage />} />

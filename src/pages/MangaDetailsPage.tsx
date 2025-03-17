@@ -1,22 +1,27 @@
 
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { BookOpen, Download, Bookmark, ChevronRight, ChevronDown, Check } from "lucide-react";
+import { BookOpen, Download, Bookmark, ChevronRight, ChevronDown, Check, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 import AppHeader from "@/components/ui-components/AppHeader";
 import BottomNavigation from "@/components/ui-components/BottomNavigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { mockManga, mockCollections } from "@/data/mockData";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { mockManga, mockCollections, Collection } from "@/data/mockData";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 const MangaDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [expandSynopsis, setExpandSynopsis] = useState(false);
   const [showCollectionDialog, setShowCollectionDialog] = useState(false);
+  const [showCreateCollectionDialog, setShowCreateCollectionDialog] = useState(false);
+  const [newCollectionName, setNewCollectionName] = useState("");
   const [downloadedChapters, setDownloadedChapters] = useState<string[]>([]);
+  const [collections, setCollections] = useState(mockCollections);
   
   // Find the manga by ID from mock data
   const manga = mockManga.find(m => m.id === id);
@@ -53,8 +58,14 @@ const MangaDetailsPage = () => {
     if (!downloadedChapters.includes(chapterId)) {
       setDownloadedChapters([...downloadedChapters, chapterId]);
       // In a real app, this would trigger a download
-      console.log(`Downloaded chapter ${chapterId}`);
+      toast.success(`Downloaded chapter ${chapterId}`);
     }
+  };
+  
+  const handleDownloadAllChapters = () => {
+    const allChapterIds = chapters.map(chapter => chapter.id);
+    setDownloadedChapters([...new Set([...downloadedChapters, ...allChapterIds])]);
+    toast.success(`Downloaded all chapters of ${manga.title}`);
   };
   
   const handleAddToCollection = () => {
@@ -64,7 +75,43 @@ const MangaDetailsPage = () => {
   const handleSelectCollection = (collectionId: string) => {
     // In a real app, this would add the manga to the collection
     console.log(`Added manga ${manga.id} to collection ${collectionId}`);
+    
+    // Update collections state to include the manga
+    setCollections(collections.map(collection => 
+      collection.id === collectionId 
+        ? { ...collection, mangaIds: [...new Set([...collection.mangaIds, manga.id])] } 
+        : collection
+    ));
+    
     setShowCollectionDialog(false);
+    toast.success(`Added ${manga.title} to collection`);
+  };
+  
+  const handleCreateCollection = () => {
+    if (newCollectionName.trim() === "") {
+      toast.error("Please enter a collection name");
+      return;
+    }
+    
+    // Create a new collection with the manga already added
+    const newCollection: Collection = {
+      id: `${collections.length + 1}`,
+      name: newCollectionName.trim(),
+      mangaIds: [manga.id],
+    };
+    
+    setCollections([...collections, newCollection]);
+    setShowCreateCollectionDialog(false);
+    setNewCollectionName("");
+    toast.success(`Created new collection: ${newCollectionName}`);
+  };
+  
+  const handleContinueReading = () => {
+    if (manga.currentChapter) {
+      navigate(`/manga/${manga.id}/chapter/${manga.currentChapter}`);
+    } else {
+      navigate(`/manga/${manga.id}/chapter/1`);
+    }
   };
   
   return (
@@ -127,12 +174,19 @@ const MangaDetailsPage = () => {
             
             {/* Action Buttons */}
             <div className="flex gap-3 mt-6 flex-wrap justify-center sm:justify-start">
-              <Button className="bg-accent hover:bg-accent/90 text-white flex-1 sm:flex-none">
+              <Button 
+                className="bg-accent hover:bg-accent/90 text-white flex-1 sm:flex-none"
+                onClick={handleContinueReading}
+              >
                 <BookOpen className="w-4 h-4 mr-2" />
                 {manga.currentChapter ? 'Continue Reading' : 'Start Reading'}
               </Button>
               
-              <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex-1 sm:flex-none">
+              <Button 
+                variant="outline" 
+                className="border-accent text-accent hover:bg-accent/10 flex-1 sm:flex-none"
+                onClick={handleDownloadAllChapters}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Download All
               </Button>
@@ -208,13 +262,17 @@ const MangaDetailsPage = () => {
         </div>
       </main>
       
+      {/* Add to Collection Dialog */}
       <Dialog open={showCollectionDialog} onOpenChange={setShowCollectionDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Add to Collection</DialogTitle>
+            <DialogDescription>
+              Choose a collection to add this manga to.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-2">
-            {mockCollections.map(collection => (
+            {collections.map(collection => (
               <button
                 key={collection.id}
                 className="w-full p-3 text-left bg-card border border-border rounded-lg hover:border-accent transition-colors"
@@ -224,13 +282,46 @@ const MangaDetailsPage = () => {
               </button>
             ))}
             
-            <Link 
-              to="/profile" 
-              className="w-full p-3 text-center bg-secondary/50 border border-dashed border-border rounded-lg text-muted-foreground block mt-4"
+            <Button 
+              variant="outline" 
+              className="w-full p-3 text-center flex items-center justify-center mt-4"
+              onClick={() => {
+                setShowCollectionDialog(false);
+                setShowCreateCollectionDialog(true);
+              }}
             >
+              <Plus className="w-4 h-4 mr-2" />
               Create New Collection
-            </Link>
+            </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Create Collection Dialog */}
+      <Dialog open={showCreateCollectionDialog} onOpenChange={setShowCreateCollectionDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Collection</DialogTitle>
+            <DialogDescription>
+              Enter a name for your new collection.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Collection Name"
+              value={newCollectionName}
+              onChange={(e) => setNewCollectionName(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateCollectionDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateCollection}>
+              Create
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       
