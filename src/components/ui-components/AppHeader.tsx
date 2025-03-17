@@ -1,9 +1,7 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronLeft, Search, Settings, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 interface AppHeaderProps {
   title?: string;
   showBackButton?: boolean;
@@ -13,7 +11,6 @@ interface AppHeaderProps {
   className?: string;
   children?: React.ReactNode;
 }
-
 const AppHeader = ({
   title,
   showBackButton = false,
@@ -21,60 +18,35 @@ const AppHeader = ({
   showSettings = true,
   showFilter = true,
   className,
-  children,
+  children
 }: AppHeaderProps) => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
-  
-  return (
-    <header 
-      className={cn(
-        "sticky top-0 z-50 w-full py-3 px-4 flex items-center justify-between bg-background/80 backdrop-blur-lg border-b border-border",
-        className
-      )}
-    >
+  return <header className={cn("sticky top-0 z-50 w-full py-3 px-4 flex items-center justify-between bg-background/80 backdrop-blur-lg border-b border-border", className)}>
       <div className="flex items-center space-x-3">
-        {showBackButton && (
-          <Link to="-1" className="p-1">
-            <ChevronLeft className="w-5 h-5" />
-          </Link>
-        )}
+        {showBackButton}
         
-        {title && (
-          <div className="flex items-center">
-            <h1 className="text-lg font-medium">{title}</h1>
+        {title && <div className="flex items-center">
+            <h1 className="text-lg font-medium mx-0 px-0">{title}</h1>
             {children}
-          </div>
-        )}
+          </div>}
         
-        {!title && isHomePage && (
-          <Link to="/" className="flex items-center">
+        {!title && isHomePage && <Link to="/" className="flex items-center">
             <h1 className="text-lg font-medium">Kurayami</h1>
-          </Link>
-        )}
+          </Link>}
       </div>
       
       <div className="flex items-center space-x-2">
-        {showFilter && isHomePage && (
-          <Link to="#filter" className="p-2">
+        {showFilter && isHomePage && <Link to="#filter" className="p-2">
             <Filter className="w-5 h-5" />
-          </Link>
-        )}
+          </Link>}
         
-        {showSearch && (
-          <Link to="/search" className="p-2">
-            <Search className="w-5 h-5" />
-          </Link>
-        )}
+        {showSearch && <Link to="/search" className="p-2">
+            <Search className="w-5 h-5 my-0 px-0 py-0 mx-[2px]" />
+          </Link>}
         
-        {showSettings && (
-          <Link to="/profile" className="p-2">
-            <Settings className="w-5 h-5" />
-          </Link>
-        )}
+        {showSettings}
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default AppHeader;
