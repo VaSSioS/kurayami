@@ -1,9 +1,9 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   Bell, FileQuestion, Globe, HelpCircle, Moon, 
-  Palette, Shield, Sun, X, AlertTriangle
+  Palette, Shield, Sun, X, AlertTriangle,
+  ChevronRight, LogOut
 } from "lucide-react";
 
 import AppHeader from "@/components/ui-components/AppHeader";
@@ -24,7 +24,6 @@ const SettingsPage = () => {
   
   const handleToggleDarkMode = () => {
     setDarkMode(!darkMode);
-    // In a real app, this would update the theme
     document.documentElement.classList.toggle('dark', !darkMode);
   };
   
@@ -48,7 +47,6 @@ const SettingsPage = () => {
     setLanguage(value);
   };
   
-  // Available accent colors
   const accentColors = [
     { name: "red", color: "#A50000" },
     { name: "blue", color: "#0066CC" },
@@ -68,7 +66,6 @@ const SettingsPage = () => {
       />
       
       <main className="container px-4 py-6 space-y-6">
-        {/* Theme and Display Section */}
         <section className="space-y-4 animate-slideDown">
           <h2 className="text-lg font-medium mb-2">Customization & Preferences</h2>
           
@@ -143,7 +140,6 @@ const SettingsPage = () => {
         
         <Separator />
         
-        {/* Privacy and Security */}
         <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.1s" }}>
           <h2 className="text-lg font-medium mb-2">Privacy & Security</h2>
           
@@ -178,7 +174,6 @@ const SettingsPage = () => {
         
         <Separator />
         
-        {/* Notification Preferences */}
         <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.2s" }}>
           <h2 className="text-lg font-medium mb-2">Notifications</h2>
           
@@ -200,7 +195,6 @@ const SettingsPage = () => {
         
         <Separator />
         
-        {/* Help and Support */}
         <section className="space-y-4 animate-slideUp" style={{ animationDelay: "0.3s" }}>
           <h2 className="text-lg font-medium mb-2">Help & Support</h2>
           
@@ -232,7 +226,6 @@ const SettingsPage = () => {
         
         <Separator />
         
-        {/* Logout */}
         <section className="pt-4 animate-slideUp" style={{ animationDelay: "0.4s" }}>
           <Button 
             variant="destructive" 
