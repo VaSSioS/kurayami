@@ -1,4 +1,3 @@
-
 export interface Manga {
   id: string;
   title: string;
@@ -10,6 +9,8 @@ export interface Manga {
   currentChapter: number;
   isCompleted: boolean;
   isInLibrary: boolean;
+  status?: string;
+  lastRead?: Date;
 }
 
 export interface Collection {
@@ -26,7 +27,7 @@ export interface Notification {
   chapterId?: string;
   coverImage?: string;
   isRead: boolean;
-  date: string; // ISO string
+  date: string;
 }
 
 export const mockManga: Manga[] = [
@@ -41,6 +42,8 @@ export const mockManga: Manga[] = [
     currentChapter: 32,
     isCompleted: false,
     isInLibrary: true,
+    status: "Ongoing",
+    lastRead: new Date(2023, 5, 15),
   },
   {
     id: "2",
@@ -53,6 +56,8 @@ export const mockManga: Manga[] = [
     currentChapter: 89,
     isCompleted: false,
     isInLibrary: true,
+    status: "Ongoing",
+    lastRead: new Date(2023, 5, 20),
   },
   {
     id: "3",
@@ -65,6 +70,8 @@ export const mockManga: Manga[] = [
     currentChapter: 116,
     isCompleted: true,
     isInLibrary: true,
+    status: "Completed",
+    lastRead: new Date(2023, 4, 10),
   },
   {
     id: "4",
@@ -77,6 +84,8 @@ export const mockManga: Manga[] = [
     currentChapter: 42,
     isCompleted: false,
     isInLibrary: true,
+    status: "Ongoing",
+    lastRead: new Date(2023, 5, 1),
   },
   {
     id: "5",
@@ -89,6 +98,8 @@ export const mockManga: Manga[] = [
     currentChapter: 98,
     isCompleted: false,
     isInLibrary: true,
+    status: "Ongoing",
+    lastRead: new Date(2023, 5, 18),
   },
   {
     id: "6",
@@ -101,6 +112,8 @@ export const mockManga: Manga[] = [
     currentChapter: 72,
     isCompleted: false,
     isInLibrary: true,
+    status: "Ongoing",
+    lastRead: new Date(2023, 4, 25),
   },
   {
     id: "7",
@@ -113,6 +126,8 @@ export const mockManga: Manga[] = [
     currentChapter: 112,
     isCompleted: false,
     isInLibrary: true,
+    status: "Ongoing",
+    lastRead: new Date(2023, 5, 12),
   },
   {
     id: "8",
@@ -125,6 +140,8 @@ export const mockManga: Manga[] = [
     currentChapter: 144,
     isCompleted: true,
     isInLibrary: true,
+    status: "Completed",
+    lastRead: new Date(2023, 3, 5),
   },
 ];
 
@@ -182,7 +199,6 @@ export const continueReading = mockManga
   .sort(() => Math.random() - 0.5)
   .slice(0, 4);
 
-// Helper to get collection data including manga details
 export const getCollectionWithManga = (collectionId: string) => {
   const collection = mockCollections.find(c => c.id === collectionId);
   if (!collection) return null;
@@ -197,7 +213,6 @@ export const getCollectionWithManga = (collectionId: string) => {
   };
 };
 
-// Helper to get collection covers
 export const getCollectionCovers = (collectionId: string): string[] => {
   const collection = mockCollections.find(c => c.id === collectionId);
   if (!collection) return [];

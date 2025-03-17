@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
-  Bell, CircleQuestion, Globe, HelpCircle, LogOut, 
+  Bell, FileQuestion, Globe, HelpCircle, LogOut, 
   Moon, Palette, Shield, Sun, User, X
 } from "lucide-react";
 
@@ -181,7 +180,7 @@ const SettingsPage = () => {
           
           <div className="p-4 bg-card border border-border rounded-lg flex items-center justify-between">
             <div className="flex items-center">
-              <CircleQuestion className="w-5 h-5 mr-3 text-accent" />
+              <FileQuestion className="w-5 h-5 mr-3 text-accent" />
               <span>FAQs</span>
             </div>
           </div>
