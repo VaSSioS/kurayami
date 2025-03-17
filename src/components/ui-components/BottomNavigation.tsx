@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Download, User } from "lucide-react";
+import { Home, Download, User, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItemProps {
@@ -16,7 +16,9 @@ const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => (
     to={to}
     className={cn(
       "flex flex-col items-center justify-center px-3 py-2 transition-all",
-      isActive ? "text-accent" : "text-muted-foreground"
+      isActive 
+        ? "text-accent text-glow" 
+        : "text-muted-foreground hover:text-foreground"
     )}
   >
     <Icon className={cn("w-5 h-5", isActive ? "animate-pulse" : "")} />
@@ -48,6 +50,12 @@ const BottomNavigation = () => {
           icon={Download} 
           label="Downloads" 
           isActive={isActive("/downloads")} 
+        />
+        <NavItem 
+          to="/history" 
+          icon={History} 
+          label="History" 
+          isActive={isActive("/history")} 
         />
         <NavItem 
           to="/profile" 

@@ -105,6 +105,10 @@ export default {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(0)" },
         },
+        glow: {
+          "0%, 100%": { boxShadow: "0 0 5px rgba(165, 0, 0, 0.5)" },
+          "50%": { boxShadow: "0 0 15px rgba(165, 0, 0, 0.8)" },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -115,6 +119,7 @@ export default {
         pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         slideInRight: "slideInRight 0.3s ease-out",
         slideInLeft: "slideInLeft 0.3s ease-out",
+        glow: "glow 2s ease-in-out infinite",
       },
     },
   },

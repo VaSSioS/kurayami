@@ -5,33 +5,33 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 4%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 88%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 88%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 4%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 88%;
 
-    --primary: 240 6% 10%;
+    --primary: 0 100% 32%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 88%;
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 69%;
 
-    --accent: 217 91% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 100% 32%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 240 6% 70%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 70%;
 
     --radius: 0.8rem;
   }
@@ -61,7 +61,7 @@
   }
   
   .glassmorphism {
-    @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-sm;
+    @apply bg-black/40 backdrop-blur-lg border border-white/10 shadow-sm;
   }
   
   .card-hover {
@@ -84,5 +84,13 @@
   
   .fade-mask-right {
     mask-image: linear-gradient(to right, black 80%, transparent 100%);
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 4px rgba(165, 0, 0, 0.7);
+  }
+  
+  .active-tab {
+    @apply text-accent before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-accent;
   }
 }
