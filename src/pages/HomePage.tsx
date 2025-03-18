@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { SortAsc, Filter } from "lucide-react";
 import AppHeader from "@/components/ui-components/AppHeader";
@@ -9,7 +8,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { mockManga, mockCollections } from "@/data/mockData";
 import { useNavigate } from "react-router-dom";
-
 const HomePage = () => {
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState("last_read");
@@ -22,7 +20,6 @@ const HomePage = () => {
     // This would typically fetch from an API or state management in a real app
     setCollections(mockCollections);
   }, []);
-  
   const handleSortClick = () => {
     // Toggle between different sort options
     const sortOptions = ["last_read", "a_z", "recent", "popular"];
@@ -30,7 +27,6 @@ const HomePage = () => {
     const nextIndex = (currentIndex + 1) % sortOptions.length;
     setSortBy(sortOptions[nextIndex]);
   };
-  
   const handleFilterClick = () => {
     navigate('/filter');
   };
@@ -70,13 +66,10 @@ const HomePage = () => {
     } else if (activeCollection.startsWith("collection-")) {
       const collectionId = activeCollection.replace("collection-", "");
       const collection = collections.find(c => c.id === collectionId);
-      return collection 
-        ? mockManga.filter(m => collection.mangaIds.includes(m.id))
-        : [];
+      return collection ? mockManga.filter(m => collection.mangaIds.includes(m.id)) : [];
     }
     return mockManga;
   }, [activeCollection, collections]);
-  
   return <div className="pb-20 animate-fadeIn">
       <AppHeader title="Library" showBackButton={false} showProfile={true} showSettings={false} />
 
@@ -89,32 +82,20 @@ const HomePage = () => {
               <Badge variant="secondary" className="ml-1">{allCount}</Badge>
             </TabsTrigger>
             
-            <TabsTrigger value="manhwa" className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center">
-              <span>Manhwa/Manhua</span>
-              <Badge variant="secondary" className="ml-1">{manhwaCount}</Badge>
-            </TabsTrigger>
             
-            <TabsTrigger value="manga" className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center">
-              <span>Manga</span>
-              <Badge variant="secondary" className="ml-1">{mangaCount}</Badge>
-            </TabsTrigger>
+            
+            
             
             <TabsTrigger value="completed" className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center">
-              <span>Completed</span>
-              <Badge variant="secondary" className="ml-1">{completedCount}</Badge>
+              
+              
             </TabsTrigger>
             
             {/* Show the user collections from profile */}
-            {collections.map(collection => (
-              <TabsTrigger 
-                key={collection.id} 
-                value={`collection-${collection.id}`} 
-                className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center"
-              >
+            {collections.map(collection => <TabsTrigger key={collection.id} value={`collection-${collection.id}`} className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center">
                 <span>{collection.name}</span>
                 <Badge variant="secondary" className="ml-1">{collection.mangaIds.length}</Badge>
-              </TabsTrigger>
-            ))}
+              </TabsTrigger>)}
           </TabsList>
         </Tabs>
 
@@ -129,17 +110,7 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            {filteredManga.map(manga => (
-              <MangaCard 
-                key={manga.id} 
-                id={manga.id} 
-                title={manga.title} 
-                coverImage={manga.coverImage} 
-                totalChapters={manga.totalChapters} 
-                currentChapter={manga.currentChapter} 
-                showProgress={false} 
-              />
-            ))}
+            {filteredManga.map(manga => <MangaCard key={manga.id} id={manga.id} title={manga.title} coverImage={manga.coverImage} totalChapters={manga.totalChapters} currentChapter={manga.currentChapter} showProgress={false} />)}
           </div>
         </section>
       </main>
@@ -147,5 +118,4 @@ const HomePage = () => {
       <BottomNavigation />
     </div>;
 };
-
 export default HomePage;
