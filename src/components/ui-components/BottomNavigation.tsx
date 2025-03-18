@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Download, Settings, History } from "lucide-react";
+import { Home, Download, Settings, History, GlobeCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItemProps {
@@ -44,6 +44,12 @@ const BottomNavigation = () => {
           icon={Home} 
           label="Library" 
           isActive={isActive("/")} 
+        />
+        <NavItem 
+          to="/sources" 
+          icon={GlobeCog} 
+          label="Sources" 
+          isActive={isActive("/sources")} 
         />
         <NavItem 
           to="/downloads" 

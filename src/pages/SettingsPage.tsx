@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
   Bell, FileQuestion, Globe, HelpCircle, Moon, 
@@ -13,6 +14,8 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 const SettingsPage = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -21,30 +24,85 @@ const SettingsPage = () => {
   const [fontScale, setFontScale] = useState([100]);
   const [accentColor, setAccentColor] = useState("red");
   const [language, setLanguage] = useState("english");
+  const [showClearHistoryDialog, setShowClearHistoryDialog] = useState(false);
+  
+  // Default to light mode on initial load
+  useEffect(() => {
+    // Remove dark mode class if it's set on page load
+    document.documentElement.classList.remove('dark');
+  }, []);
   
   const handleToggleDarkMode = () => {
     setDarkMode(!darkMode);
     document.documentElement.classList.toggle('dark', !darkMode);
+    
+    // In a real app, save this preference to localStorage or a database
+    if (!darkMode) {
+      toast.success("Dark mode enabled");
+    } else {
+      toast.success("Light mode enabled");
+    }
   };
   
   const handleToggleNotifications = () => {
     setNotifications(!notifications);
+    toast.success(notifications ? "Notifications disabled" : "Notifications enabled");
   };
   
   const handleToggleMangaUpdates = () => {
     setMangaUpdates(!mangaUpdates);
+    toast.success(mangaUpdates ? "Manga updates disabled" : "Manga updates enabled");
   };
   
   const handleFontSizeChange = (value: number[]) => {
     setFontScale(value);
+    
+    // Apply font size changes to the document
+    document.documentElement.style.fontSize = `${value[0]}%`;
+    
+    // In a real app, save this preference to localStorage or a database
+    toast.success(`Font size set to ${value[0]}%`);
   };
   
   const handleAccentColorChange = (color: string) => {
     setAccentColor(color);
+    
+    // Apply accent color changes
+    // This would typically update CSS variables in a real app
+    document.documentElement.style.setProperty('--accent', getColorHex(color));
+    document.documentElement.style.setProperty('--accent-foreground', '#ffffff');
+    
+    toast.success(`Accent color changed to ${color}`);
   };
   
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
+    toast.success(`Language changed to ${value}`);
+  };
+  
+  const handleClearHistory = () => {
+    // In a real app, this would clear reading history from storage
+    // For now, just show a toast message
+    setShowClearHistoryDialog(false);
+    toast.success("Reading history cleared");
+  };
+  
+  // Function to get the hex color value based on color name
+  const getColorHex = (colorName: string): string => {
+    switch (colorName) {
+      case "red":
+        return "#A50000";
+      case "blue":
+        return "#0066CC";
+      case "green":
+        return "#008055";
+      case "purple":
+        return "#6C0BA9";
+      case "orange":
+        return "#CC5500";
+      default:
+        return "#A50000";
+    }
   };
   
   const accentColors = [
@@ -153,6 +211,7 @@ const SettingsPage = () => {
           
           <button
             className="w-full p-4 bg-card border border-border rounded-lg flex items-center justify-between"
+            onClick={() => setShowClearHistoryDialog(true)}
           >
             <div className="flex items-center">
               <X className="w-5 h-5 mr-3 text-accent" />
@@ -236,6 +295,26 @@ const SettingsPage = () => {
           </Button>
         </section>
       </main>
+      
+      {/* Clear History Confirmation Dialog */}
+      <Dialog open={showClearHistoryDialog} onOpenChange={setShowClearHistoryDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Clear Reading History</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p>Are you sure you want to clear your reading history? This action cannot be undone.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowClearHistoryDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleClearHistory}>
+              Clear History
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <BottomNavigation />
     </div>

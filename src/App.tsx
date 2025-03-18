@@ -14,6 +14,7 @@ import MangaDetailsPage from "./pages/MangaDetailsPage";
 import ChapterReadingPage from "./pages/ChapterReadingPage";
 import DownloadsPage from "./pages/DownloadsPage";
 import FilterPage from "./pages/FilterPage";
+import SourcesPage from "./pages/SourcesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/collections/:id" element={<HomePage />} /> {/* Placeholder */}
           <Route path="/continue-reading" element={<HistoryPage />} />
           <Route path="/downloads" element={<DownloadsPage />} />
+          <Route path="/sources" element={<SourcesPage />} />
           <Route path="/filter" element={<FilterPage />} />
           <Route path="/reading-history" element={<HistoryPage />} />
           <Route path="/account-settings" element={<ProfilePage />} />

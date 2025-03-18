@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { BookOpen, Download, Bookmark, ChevronRight, ChevronDown, Check, Plus } from "lucide-react";
@@ -58,7 +57,7 @@ const MangaDetailsPage = () => {
     if (!downloadedChapters.includes(chapterId)) {
       setDownloadedChapters([...downloadedChapters, chapterId]);
       // In a real app, this would trigger a download
-      toast.success(`Downloaded chapter ${chapterId}`);
+      toast.success(`Downloaded chapter ${chapterId.replace('ch', '')}`);
     }
   };
   
@@ -73,15 +72,28 @@ const MangaDetailsPage = () => {
   };
   
   const handleSelectCollection = (collectionId: string) => {
-    // In a real app, this would add the manga to the collection
-    console.log(`Added manga ${manga.id} to collection ${collectionId}`);
-    
     // Update collections state to include the manga
-    setCollections(collections.map(collection => 
+    const updatedCollections = collections.map(collection => 
       collection.id === collectionId 
-        ? { ...collection, mangaIds: [...new Set([...collection.mangaIds, manga.id])] } 
+        ? { 
+            ...collection, 
+            mangaIds: collection.mangaIds.includes(manga.id) 
+              ? collection.mangaIds 
+              : [...collection.mangaIds, manga.id] 
+          } 
         : collection
-    ));
+    );
+    
+    setCollections(updatedCollections);
+    
+    // Update mockCollections to persist changes
+    // In a real app, this would save to localStorage or a database
+    const collectionIndex = mockCollections.findIndex(c => c.id === collectionId);
+    if (collectionIndex !== -1) {
+      if (!mockCollections[collectionIndex].mangaIds.includes(manga.id)) {
+        mockCollections[collectionIndex].mangaIds.push(manga.id);
+      }
+    }
     
     setShowCollectionDialog(false);
     toast.success(`Added ${manga.title} to collection`);
@@ -95,12 +107,18 @@ const MangaDetailsPage = () => {
     
     // Create a new collection with the manga already added
     const newCollection: Collection = {
-      id: `${collections.length + 1}`,
+      id: `${Date.now()}`, // Generate a unique ID based on timestamp
       name: newCollectionName.trim(),
       mangaIds: [manga.id],
     };
     
-    setCollections([...collections, newCollection]);
+    const updatedCollections = [...collections, newCollection];
+    setCollections(updatedCollections);
+    
+    // Update mockCollections to persist changes
+    // In a real app, this would save to localStorage or a database
+    mockCollections.push(newCollection);
+    
     setShowCreateCollectionDialog(false);
     setNewCollectionName("");
     toast.success(`Created new collection: ${newCollectionName}`);
@@ -272,15 +290,20 @@ const MangaDetailsPage = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-2">
-            {collections.map(collection => (
-              <button
-                key={collection.id}
-                className="w-full p-3 text-left bg-card border border-border rounded-lg hover:border-accent transition-colors"
-                onClick={() => handleSelectCollection(collection.id)}
-              >
-                {collection.name}
-              </button>
-            ))}
+            {collections.map(collection => {
+              const isInCollection = collection.mangaIds.includes(manga.id);
+              
+              return (
+                <button
+                  key={collection.id}
+                  className={`w-full p-3 text-left bg-card border ${isInCollection ? 'border-accent' : 'border-border'} rounded-lg hover:border-accent transition-colors flex justify-between items-center`}
+                  onClick={() => handleSelectCollection(collection.id)}
+                >
+                  <span>{collection.name}</span>
+                  {isInCollection && <Check className="w-4 h-4 text-accent" />}
+                </button>
+              );
+            })}
             
             <Button 
               variant="outline" 
