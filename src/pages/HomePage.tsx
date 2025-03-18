@@ -86,10 +86,7 @@ const HomePage = () => {
             
             
             
-            <TabsTrigger value="completed" className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center">
-              
-              
-            </TabsTrigger>
+            
             
             {/* Show the user collections from profile */}
             {collections.map(collection => <TabsTrigger key={collection.id} value={`collection-${collection.id}`} className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center">
