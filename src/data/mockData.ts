@@ -1,3 +1,4 @@
+
 export interface Manga {
   id: string;
   title: string;
@@ -9,6 +10,7 @@ export interface Manga {
   currentChapter: number;
   isCompleted: boolean;
   isInLibrary: boolean;
+  isFavorite?: boolean;  // Add this property
   status?: string;
   lastRead?: Date;
 }
@@ -42,6 +44,7 @@ export const mockManga: Manga[] = [
     currentChapter: 32,
     isCompleted: false,
     isInLibrary: true,
+    isFavorite: true,  // Added isFavorite property
     status: "Ongoing",
     lastRead: new Date(2023, 5, 15),
   },
@@ -56,6 +59,7 @@ export const mockManga: Manga[] = [
     currentChapter: 89,
     isCompleted: false,
     isInLibrary: true,
+    isFavorite: false,  // Added isFavorite property
     status: "Ongoing",
     lastRead: new Date(2023, 5, 20),
   },
@@ -70,6 +74,7 @@ export const mockManga: Manga[] = [
     currentChapter: 116,
     isCompleted: true,
     isInLibrary: true,
+    isFavorite: true,  // Added isFavorite property
     status: "Completed",
     lastRead: new Date(2023, 4, 10),
   },
@@ -84,6 +89,7 @@ export const mockManga: Manga[] = [
     currentChapter: 42,
     isCompleted: false,
     isInLibrary: true,
+    isFavorite: false,  // Added isFavorite property
     status: "Ongoing",
     lastRead: new Date(2023, 5, 1),
   },
@@ -98,6 +104,7 @@ export const mockManga: Manga[] = [
     currentChapter: 98,
     isCompleted: false,
     isInLibrary: true,
+    isFavorite: true,  // Added isFavorite property
     status: "Ongoing",
     lastRead: new Date(2023, 5, 18),
   },
@@ -112,6 +119,7 @@ export const mockManga: Manga[] = [
     currentChapter: 72,
     isCompleted: false,
     isInLibrary: true,
+    isFavorite: false,  // Added isFavorite property
     status: "Ongoing",
     lastRead: new Date(2023, 4, 25),
   },
@@ -126,6 +134,7 @@ export const mockManga: Manga[] = [
     currentChapter: 112,
     isCompleted: false,
     isInLibrary: true,
+    isFavorite: false,  // Added isFavorite property
     status: "Ongoing",
     lastRead: new Date(2023, 5, 12),
   },
@@ -140,6 +149,7 @@ export const mockManga: Manga[] = [
     currentChapter: 144,
     isCompleted: true,
     isInLibrary: true,
+    isFavorite: false,  // Added isFavorite property
     status: "Completed",
     lastRead: new Date(2023, 3, 5),
   },

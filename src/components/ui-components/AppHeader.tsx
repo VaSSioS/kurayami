@@ -14,6 +14,8 @@ interface AppHeaderProps {
   className?: string;
   children?: React.ReactNode;
   onBackClick?: () => void;
+  rightElement?: React.ReactNode;
+  rightElement2?: React.ReactNode;
 }
 
 const AppHeader = ({
@@ -25,7 +27,9 @@ const AppHeader = ({
   showProfile = true,
   className,
   children,
-  onBackClick
+  onBackClick,
+  rightElement,
+  rightElement2
 }: AppHeaderProps) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -63,13 +67,16 @@ const AppHeader = ({
       </div>
       
       <div className="flex items-center space-x-2">
-        {showFilter && isHomePage && (
+        {rightElement}
+        {rightElement2}
+        
+        {showFilter && isHomePage && !rightElement && (
           <Link to="/filter" className="p-2">
             <Filter className="w-5 h-5" />
           </Link>
         )}
         
-        {showSearch && (
+        {showSearch && !rightElement2 && (
           <Link to="/search" className="p-2">
             <Search className="w-5 h-5" />
           </Link>

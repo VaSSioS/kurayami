@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Download, Settings, History, GlobeCog } from "lucide-react";
+import { Home, Download, Settings, History, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItemProps {
@@ -47,7 +47,7 @@ const BottomNavigation = () => {
         />
         <NavItem 
           to="/sources" 
-          icon={GlobeCog} 
+          icon={Globe} 
           label="Sources" 
           isActive={isActive("/sources")} 
         />
