@@ -1,7 +1,7 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Plus, MoreVertical, ExternalLink } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import AppHeader from "@/components/ui-components/AppHeader";
@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Mock data for sources (would be replaced with actual state management)
+// Source interface
 interface Source {
   id: string;
   name: string;
@@ -32,10 +32,15 @@ interface Source {
 }
 
 const SourcesPage = () => {
-  const [sources, setSources] = useState<Source[]>([
-    { id: "1", name: "MangaDex", domain: "mangadex.org", icon: "https://mangadex.org/favicon.ico" },
-    { id: "2", name: "Manga Plus", domain: "mangaplus.shueisha.co.jp", icon: "https://mangaplus.shueisha.co.jp/favicon.ico" },
-  ]);
+  const navigate = useNavigate();
+  const [sources, setSources] = useState<Source[]>(() => {
+    // Get sources from localStorage or use default
+    const storedSources = localStorage.getItem("sources");
+    return storedSources ? JSON.parse(storedSources) : [
+      { id: "1", name: "MangaDex", domain: "mangadex.org", icon: "https://mangadex.org/favicon.ico" },
+      { id: "2", name: "Manga Plus", domain: "mangaplus.shueisha.co.jp", icon: "https://mangaplus.shueisha.co.jp/favicon.ico" },
+    ];
+  });
   
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newDomain, setNewDomain] = useState("");
@@ -47,6 +52,11 @@ const SourcesPage = () => {
   const [editName, setEditName] = useState("");
   const [editDomain, setEditDomain] = useState("");
   
+  // Save sources to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem("sources", JSON.stringify(sources));
+  }, [sources]);
+  
   const handleAddSource = () => {
     if (!newDomain) {
       toast.error("Please enter a domain");
@@ -55,21 +65,23 @@ const SourcesPage = () => {
     
     setIsProcessing(true);
     
+    // Extract domain name for the default name
+    let domain = newDomain.replace(/^(?:https?:\/\/)?(?:www\.)?/i, "").split('/')[0];
+    
     // Simulate API call/scraping process
     setTimeout(() => {
-      const id = (sources.length + 1).toString();
+      const id = Date.now().toString();
       
-      // Extract domain name for the default name
-      let name = newDomain.replace(/^(?:https?:\/\/)?(?:www\.)?/i, "").split('/')[0];
-      name = name.charAt(0).toUpperCase() + name.slice(1).split('.')[0];
+      // Format domain name for the default name
+      let name = domain.charAt(0).toUpperCase() + domain.slice(1).split('.')[0];
       
       const newSource: Source = {
         id,
         name,
-        domain: newDomain.replace(/^(?:https?:\/\/)?(?:www\.)?/i, "").split('/')[0],
+        domain,
       };
       
-      setSources([...sources, newSource]);
+      setSources(prev => [...prev, newSource]);
       setNewDomain("");
       setShowAddDialog(false);
       setIsProcessing(false);
@@ -126,11 +138,17 @@ const SourcesPage = () => {
     setShowEditDomainDialog(true);
   };
   
+  const handleOpenSource = (source: Source) => {
+    // Navigate to source manga list page
+    navigate(`/sources/${source.id}`);
+  };
+  
   return (
     <div className="min-h-screen pb-20 animate-fadeIn bg-background">
       <AppHeader 
         title="Sources" 
         showBackButton={false}
+        showSettings={false}
         rightElement={
           <Button variant="ghost" size="icon" onClick={() => setShowAddDialog(true)}>
             <Plus className="h-5 w-5" />
@@ -153,7 +171,10 @@ const SourcesPage = () => {
                 key={source.id}
                 className="p-4 bg-card border border-border rounded-lg flex items-center justify-between"
               >
-                <div className="flex items-center space-x-3">
+                <div 
+                  className="flex items-center space-x-3 flex-1 cursor-pointer"
+                  onClick={() => handleOpenSource(source)}
+                >
                   <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center overflow-hidden">
                     {source.icon ? (
                       <img src={source.icon} alt={source.name} className="w-full h-full object-cover" />
@@ -173,6 +194,7 @@ const SourcesPage = () => {
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="ml-1 text-accent"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <ExternalLink className="w-3 h-3" />
                       </a>

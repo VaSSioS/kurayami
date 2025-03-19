@@ -9,22 +9,27 @@ interface NavItemProps {
   icon: React.ElementType;
   label: string;
   isActive: boolean;
+  hide?: boolean;
 }
 
-const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => (
-  <Link
-    to={to}
-    className={cn(
-      "flex flex-col items-center justify-center px-3 py-2 transition-all",
-      isActive 
-        ? "text-accent text-glow" 
-        : "text-muted-foreground hover:text-foreground"
-    )}
-  >
-    <Icon className={cn("w-5 h-5", isActive ? "animate-pulse" : "")} />
-    <span className="text-xs mt-0.5">{label}</span>
-  </Link>
-);
+const NavItem = ({ to, icon: Icon, label, isActive, hide }: NavItemProps) => {
+  if (hide) return null;
+  
+  return (
+    <Link
+      to={to}
+      className={cn(
+        "flex flex-col items-center justify-center px-3 py-2 transition-all",
+        isActive 
+          ? "text-accent text-glow" 
+          : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      <Icon className={cn("w-5 h-5", isActive ? "animate-pulse" : "")} />
+      <span className="text-xs mt-0.5">{label}</span>
+    </Link>
+  );
+};
 
 const BottomNavigation = () => {
   const location = useLocation();
@@ -35,6 +40,9 @@ const BottomNavigation = () => {
     if (route !== "/" && path.startsWith(route)) return true;
     return false;
   };
+  
+  // Hide settings button from specific pages
+  const hideSettings = isActive("/sources") || isActive("/downloads") || isActive("/history");
   
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border">
@@ -67,7 +75,8 @@ const BottomNavigation = () => {
           to="/settings" 
           icon={Settings} 
           label="Settings" 
-          isActive={isActive("/settings")} 
+          isActive={isActive("/settings")}
+          hide={hideSettings}
         />
       </div>
     </nav>

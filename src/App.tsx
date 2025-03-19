@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +15,7 @@ import DownloadsPage from "./pages/DownloadsPage";
 import FilterPage from "./pages/FilterPage";
 import SourcesPage from "./pages/SourcesPage";
 import NotFound from "./pages/NotFound";
+import SourceMangaListPage from "./pages/SourceMangaListPage";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +40,7 @@ const App = () => (
           <Route path="/filter" element={<FilterPage />} />
           <Route path="/reading-history" element={<HistoryPage />} />
           <Route path="/account-settings" element={<ProfilePage />} />
+          <Route path="/sources/:sourceId" element={<SourceMangaListPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

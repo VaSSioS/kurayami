@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { BookOpen, Download, Bookmark, ChevronRight, ChevronDown, Check, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -19,11 +20,44 @@ const MangaDetailsPage = () => {
   const [showCollectionDialog, setShowCollectionDialog] = useState(false);
   const [showCreateCollectionDialog, setShowCreateCollectionDialog] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
-  const [downloadedChapters, setDownloadedChapters] = useState<string[]>([]);
-  const [collections, setCollections] = useState(mockCollections);
+  const [downloadedChapters, setDownloadedChapters] = useState<string[]>(() => {
+    // Get downloaded chapters from localStorage or default to empty array
+    const stored = localStorage.getItem(`downloadedChapters-${id}`);
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [collections, setCollections] = useState<Collection[]>(() => {
+    // Get collections from localStorage or use mock data
+    const storedCollections = localStorage.getItem("collections");
+    return storedCollections ? JSON.parse(storedCollections) : mockCollections;
+  });
+  const [activeCollectionId, setActiveCollectionId] = useState<string | null>(null);
   
   // Find the manga by ID from mock data
   const manga = mockManga.find(m => m.id === id);
+  
+  useEffect(() => {
+    if (!manga) return;
+    
+    // Check which collection this manga belongs to
+    for (const collection of collections) {
+      if (collection.mangaIds.includes(manga.id)) {
+        setActiveCollectionId(collection.id);
+        break;
+      }
+    }
+  }, [manga, collections]);
+  
+  // Save collections to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem("collections", JSON.stringify(collections));
+  }, [collections]);
+  
+  // Save downloaded chapters to localStorage when they change
+  useEffect(() => {
+    if (id) {
+      localStorage.setItem(`downloadedChapters-${id}`, JSON.stringify(downloadedChapters));
+    }
+  }, [downloadedChapters, id]);
   
   if (!manga) {
     return (
@@ -50,13 +84,18 @@ const MangaDetailsPage = () => {
     title: `Chapter ${i + 1}`,
     releaseDate: new Date(Date.now() - (i * 7 * 24 * 60 * 60 * 1000)), // One week apart
     isRead: manga.currentChapter ? i + 1 <= manga.currentChapter : false,
-    isDownloaded: downloadedChapters.includes(`ch${i + 1}`) || Math.random() > 0.7,
+    isDownloaded: downloadedChapters.includes(`ch${i + 1}`),
   }));
+  
+  const getActiveCollectionName = () => {
+    if (!activeCollectionId) return null;
+    const collection = collections.find(c => c.id === activeCollectionId);
+    return collection ? collection.name : null;
+  };
   
   const handleDownloadChapter = (chapterId: string) => {
     if (!downloadedChapters.includes(chapterId)) {
       setDownloadedChapters([...downloadedChapters, chapterId]);
-      // In a real app, this would trigger a download
       toast.success(`Downloaded chapter ${chapterId.replace('ch', '')}`);
     }
   };
@@ -72,31 +111,26 @@ const MangaDetailsPage = () => {
   };
   
   const handleSelectCollection = (collectionId: string) => {
-    // Update collections state to include the manga
-    const updatedCollections = collections.map(collection => 
+    // First, remove manga from any existing collection
+    const updatedCollections = collections.map(collection => ({
+      ...collection,
+      mangaIds: collection.mangaIds.filter(id => id !== manga.id)
+    }));
+    
+    // Then add it to the selected collection
+    const finalCollections = updatedCollections.map(collection => 
       collection.id === collectionId 
-        ? { 
-            ...collection, 
-            mangaIds: collection.mangaIds.includes(manga.id) 
-              ? collection.mangaIds 
-              : [...collection.mangaIds, manga.id] 
-          } 
+        ? { ...collection, mangaIds: [...collection.mangaIds, manga.id] } 
         : collection
     );
     
-    setCollections(updatedCollections);
-    
-    // Update mockCollections to persist changes
-    // In a real app, this would save to localStorage or a database
-    const collectionIndex = mockCollections.findIndex(c => c.id === collectionId);
-    if (collectionIndex !== -1) {
-      if (!mockCollections[collectionIndex].mangaIds.includes(manga.id)) {
-        mockCollections[collectionIndex].mangaIds.push(manga.id);
-      }
-    }
+    setCollections(finalCollections);
+    setActiveCollectionId(collectionId);
     
     setShowCollectionDialog(false);
-    toast.success(`Added ${manga.title} to collection`);
+    toast.success(`Added ${manga.title} to ${
+      finalCollections.find(c => c.id === collectionId)?.name || 'collection'
+    }`);
   };
   
   const handleCreateCollection = () => {
@@ -107,17 +141,20 @@ const MangaDetailsPage = () => {
     
     // Create a new collection with the manga already added
     const newCollection: Collection = {
-      id: `${Date.now()}`, // Generate a unique ID based on timestamp
+      id: `collection-${Date.now()}`, // Generate a unique ID based on timestamp
       name: newCollectionName.trim(),
       mangaIds: [manga.id],
     };
     
-    const updatedCollections = [...collections, newCollection];
-    setCollections(updatedCollections);
+    // Remove manga from any existing collection first
+    const updatedCollections = collections.map(collection => ({
+      ...collection,
+      mangaIds: collection.mangaIds.filter(id => id !== manga.id)
+    }));
     
-    // Update mockCollections to persist changes
-    // In a real app, this would save to localStorage or a database
-    mockCollections.push(newCollection);
+    const finalCollections = [...updatedCollections, newCollection];
+    setCollections(finalCollections);
+    setActiveCollectionId(newCollection.id);
     
     setShowCreateCollectionDialog(false);
     setNewCollectionName("");
@@ -215,7 +252,7 @@ const MangaDetailsPage = () => {
                 onClick={handleAddToCollection}
               >
                 <Bookmark className="w-4 h-4 mr-2" />
-                Add to Collection
+                {activeCollectionId ? getActiveCollectionName() : 'Add to Collection'}
               </Button>
             </div>
           </div>
@@ -267,7 +304,7 @@ const MangaDetailsPage = () => {
                     onClick={() => handleDownloadChapter(chapter.id)}
                     className="p-1"
                   >
-                    {chapter.isDownloaded || downloadedChapters.includes(chapter.id) ? (
+                    {chapter.isDownloaded ? (
                       <Check className="w-4 h-4 text-green-500" />
                     ) : (
                       <Download className="w-4 h-4 text-muted-foreground hover:text-accent" />

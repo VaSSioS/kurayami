@@ -17,101 +17,126 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
+// Define the accent colors
+const ACCENT_COLORS = [
+  { name: "blue", color: "#3E94F0", displayName: "Blue" },
+  { name: "green", color: "#75B51B", displayName: "Green" },
+  { name: "red", color: "#E03A24", displayName: "Red" },
+  { name: "yellow", color: "#F5D72F", displayName: "Yellow" },
+  { name: "purple", color: "#AC0EF0", displayName: "Purple" }
+];
+
 const SettingsPage = () => {
-  const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
-  const [mangaUpdates, setMangaUpdates] = useState(true);
-  const [fontScale, setFontScale] = useState([100]);
-  const [accentColor, setAccentColor] = useState("red");
-  const [language, setLanguage] = useState("english");
-  const [showClearHistoryDialog, setShowClearHistoryDialog] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    // Get stored theme preference or default to false (light mode)
+    return localStorage.getItem("darkMode") === "true";
+  });
   
-  // Default to light mode on initial load
+  const [notifications, setNotifications] = useState(() => {
+    // Get stored notification preference or default to true
+    return localStorage.getItem("notifications") !== "false";
+  });
+  
+  const [mangaUpdates, setMangaUpdates] = useState(() => {
+    // Get stored manga updates preference or default to true
+    return localStorage.getItem("mangaUpdates") !== "false";
+  });
+  
+  const [fontScale, setFontScale] = useState(() => {
+    // Get stored font scale or default to 100%
+    const storedFontScale = localStorage.getItem("fontScale");
+    return storedFontScale ? [parseInt(storedFontScale)] : [100];
+  });
+  
+  const [accentColor, setAccentColor] = useState(() => {
+    // Get stored accent color or default to red
+    return localStorage.getItem("accentColor") || "red";
+  });
+  
+  const [language, setLanguage] = useState(() => {
+    // Get stored language or default to english
+    return localStorage.getItem("language") || "english";
+  });
+  
+  const [showClearHistoryDialog, setShowClearHistoryDialog] = useState(false);
+  const [readingHistory, setReadingHistory] = useState<string[]>(() => {
+    // Get stored reading history or default to empty array
+    const storedHistory = localStorage.getItem("readingHistory");
+    return storedHistory ? JSON.parse(storedHistory) : [];
+  });
+  
+  // Apply theme on initial load and when changed
   useEffect(() => {
-    // Remove dark mode class if it's set on page load
-    document.documentElement.classList.remove('dark');
-  }, []);
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem("darkMode", darkMode.toString());
+  }, [darkMode]);
+  
+  // Apply font size on initial load and when changed
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${fontScale[0]}%`;
+    localStorage.setItem("fontScale", fontScale[0].toString());
+  }, [fontScale]);
+  
+  // Apply accent color on initial load and when changed
+  useEffect(() => {
+    const colorObj = ACCENT_COLORS.find(c => c.name === accentColor);
+    if (colorObj) {
+      document.documentElement.style.setProperty('--accent', colorObj.color);
+      document.documentElement.style.setProperty('--accent-foreground', '#ffffff');
+    }
+    localStorage.setItem("accentColor", accentColor);
+  }, [accentColor]);
+  
+  // Save reading history when changed
+  useEffect(() => {
+    localStorage.setItem("readingHistory", JSON.stringify(readingHistory));
+  }, [readingHistory]);
   
   const handleToggleDarkMode = () => {
     setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark', !darkMode);
-    
-    // In a real app, save this preference to localStorage or a database
-    if (!darkMode) {
-      toast.success("Dark mode enabled");
-    } else {
-      toast.success("Light mode enabled");
-    }
+    toast.success(!darkMode ? "Dark mode enabled" : "Light mode enabled");
   };
   
   const handleToggleNotifications = () => {
-    setNotifications(!notifications);
+    const newValue = !notifications;
+    setNotifications(newValue);
+    localStorage.setItem("notifications", newValue.toString());
     toast.success(notifications ? "Notifications disabled" : "Notifications enabled");
   };
   
   const handleToggleMangaUpdates = () => {
-    setMangaUpdates(!mangaUpdates);
+    const newValue = !mangaUpdates;
+    setMangaUpdates(newValue);
+    localStorage.setItem("mangaUpdates", newValue.toString());
     toast.success(mangaUpdates ? "Manga updates disabled" : "Manga updates enabled");
   };
   
   const handleFontSizeChange = (value: number[]) => {
     setFontScale(value);
-    
-    // Apply font size changes to the document
-    document.documentElement.style.fontSize = `${value[0]}%`;
-    
-    // In a real app, save this preference to localStorage or a database
     toast.success(`Font size set to ${value[0]}%`);
   };
   
   const handleAccentColorChange = (color: string) => {
     setAccentColor(color);
-    
-    // Apply accent color changes
-    // This would typically update CSS variables in a real app
-    document.documentElement.style.setProperty('--accent', getColorHex(color));
-    document.documentElement.style.setProperty('--accent-foreground', '#ffffff');
-    
-    toast.success(`Accent color changed to ${color}`);
+    toast.success(`Accent color changed to ${ACCENT_COLORS.find(c => c.name === color)?.displayName || color}`);
   };
   
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
+    localStorage.setItem("language", value);
     toast.success(`Language changed to ${value}`);
   };
   
   const handleClearHistory = () => {
-    // In a real app, this would clear reading history from storage
-    // For now, just show a toast message
+    // Clear reading history
+    setReadingHistory([]);
     setShowClearHistoryDialog(false);
     toast.success("Reading history cleared");
   };
-  
-  // Function to get the hex color value based on color name
-  const getColorHex = (colorName: string): string => {
-    switch (colorName) {
-      case "red":
-        return "#A50000";
-      case "blue":
-        return "#0066CC";
-      case "green":
-        return "#008055";
-      case "purple":
-        return "#6C0BA9";
-      case "orange":
-        return "#CC5500";
-      default:
-        return "#A50000";
-    }
-  };
-  
-  const accentColors = [
-    { name: "red", color: "#A50000" },
-    { name: "blue", color: "#0066CC" },
-    { name: "green", color: "#008055" },
-    { name: "purple", color: "#6C0BA9" },
-    { name: "orange", color: "#CC5500" },
-  ];
   
   return (
     <div className="min-h-screen pb-20 animate-fadeIn bg-background">
@@ -142,7 +167,7 @@ const SettingsPage = () => {
             </div>
             
             <div className="flex justify-between gap-2">
-              {accentColors.map(color => (
+              {ACCENT_COLORS.map(color => (
                 <button
                   key={color.name}
                   onClick={() => handleAccentColorChange(color.name)}
@@ -150,7 +175,7 @@ const SettingsPage = () => {
                     accentColor === color.name ? 'ring-2 ring-white scale-110' : ''
                   }`}
                   style={{ backgroundColor: color.color }}
-                  aria-label={`Set accent color to ${color.name}`}
+                  aria-label={`Set accent color to ${color.displayName}`}
                 />
               ))}
             </div>
