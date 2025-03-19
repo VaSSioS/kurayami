@@ -149,11 +149,16 @@ const HomePage = () => {
             <SortAsc className="h-5 w-5" />
           </Button>
         }
+        rightElement2={
+          <Button variant="ghost" size="icon" onClick={() => navigate('/search')}>
+            <Filter className="h-5 w-5" />
+          </Button>
+        }
       />
 
       <main className="container px-4 py-2 space-y-6">
         {/* Collection Filter Tabs */}
-        <Tabs defaultValue="all" className="w-full" onValueChange={setActiveCollection} value={activeCollection}>
+        <Tabs defaultValue={activeCollection} value={activeCollection} onValueChange={setActiveCollection} className="w-full">
           <TabsList className="w-full h-12 bg-background rounded-none border-b border-border p-0 justify-start overflow-x-auto no-scrollbar">
             {defaultCollections.map(collection => {
               const Icon = collection.icon;
@@ -166,7 +171,10 @@ const HomePage = () => {
                     {Icon && <Icon className="w-4 h-4" />}
                     <span>{collection.name}</span>
                     <Badge variant="secondary" className="ml-1">
-                      {collection.id === "all" ? allCount : collection.id === "favorites" ? favoritesCount : collection.id === "to-read" ? toReadCount : collection.id === "completed" ? completedCount : 0}
+                      {collection.id === "all" ? allCount : 
+                       collection.id === "favorites" ? favoritesCount : 
+                       collection.id === "to-read" ? toReadCount : 
+                       collection.id === "completed" ? completedCount : 0}
                     </Badge>
                   </TabsTrigger>
                   
