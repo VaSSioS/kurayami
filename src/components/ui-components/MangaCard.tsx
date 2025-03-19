@@ -14,6 +14,8 @@ interface MangaCardProps {
   aspectRatio?: "portrait" | "square";
   showProgress?: boolean;
   isContinueReading?: boolean;
+  progressValue?: number; // Added for download progress
+  progressLabel?: string; // Added for download status label
 }
 
 const MangaCard = ({
@@ -26,10 +28,15 @@ const MangaCard = ({
   aspectRatio = "portrait",
   showProgress = true,
   isContinueReading = false,
+  progressValue, // Handle the progress value for downloads
+  progressLabel, // Handle the progress label for downloads
 }: MangaCardProps) => {
-  const progress = currentChapter && totalChapters 
-    ? Math.round((currentChapter / totalChapters) * 100) 
-    : 0;
+  // Calculate reading progress if not explicitly provided
+  const progress = progressValue !== undefined 
+    ? progressValue 
+    : (currentChapter && totalChapters 
+      ? Math.round((currentChapter / totalChapters) * 100) 
+      : 0);
   
   const isCompleted = currentChapter && totalChapters && currentChapter >= totalChapters;
   
@@ -63,15 +70,19 @@ const MangaCard = ({
           
           {showProgress && (
             <>
-              {isCompleted ? (
+              {isCompleted && !progressLabel ? (
                 <span className="text-xs text-accent">Completed</span>
               ) : (
                 <div className="space-y-1">
                   <div className="flex justify-between items-center text-xs text-muted-foreground">
-                    <span>Chapter {currentChapter}/{totalChapters}</span>
+                    {progressLabel ? (
+                      <span>{progressLabel}</span>
+                    ) : (
+                      <span>Chapter {currentChapter}/{totalChapters}</span>
+                    )}
                   </div>
                   
-                  {isContinueReading && (
+                  {(isContinueReading || progressValue !== undefined) && (
                     <div className="relative">
                       <Progress value={progress} className="h-1" />
                     </div>
