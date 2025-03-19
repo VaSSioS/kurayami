@@ -14,24 +14,36 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
+// Define collection type
+interface Collection {
+  id: string;
+  name: string;
+  icon: React.ComponentType<any> | null;
+}
+
 // Define default collection types
-const DEFAULT_COLLECTIONS = [{
-  id: "all",
-  name: "All",
-  icon: null
-}, {
-  id: "favorites",
-  name: "Favorites",
-  icon: Heart
-}, {
-  id: "to-read",
-  name: "To Read",
-  icon: BookOpen
-}, {
-  id: "completed",
-  name: "Completed",
-  icon: CheckSquare
-}];
+const DEFAULT_COLLECTIONS: Collection[] = [
+  {
+    id: "all",
+    name: "All",
+    icon: null
+  }, 
+  {
+    id: "favorites",
+    name: "Favorites",
+    icon: Heart
+  }, 
+  {
+    id: "to-read",
+    name: "To Read",
+    icon: BookOpen
+  }, 
+  {
+    id: "completed",
+    name: "Completed",
+    icon: CheckSquare
+  }
+];
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -43,7 +55,7 @@ const HomePage = () => {
     // Get stored active collection or default to "all"
     return localStorage.getItem("activeCollection") || "all";
   });
-  const [defaultCollections, setDefaultCollections] = useState(() => {
+  const [defaultCollections, setDefaultCollections] = useState<Collection[]>(() => {
     // Get stored default collections or use DEFAULT_COLLECTIONS
     const storedDefaults = localStorage.getItem("defaultCollections");
     return storedDefaults ? JSON.parse(storedDefaults) : DEFAULT_COLLECTIONS;
@@ -123,6 +135,14 @@ const HomePage = () => {
     setNewCollectionName("");
   };
 
+  // Helper function to get the appropriate icon component
+  const getCollectionIcon = (iconName: string | null) => {
+    if (iconName === 'Heart') return Heart;
+    if (iconName === 'BookOpen') return BookOpen;
+    if (iconName === 'CheckSquare') return CheckSquare;
+    return null;
+  };
+
   // Filter manga based on active collection
   const filteredManga = React.useMemo(() => {
     if (activeCollection === "all") {
@@ -161,14 +181,19 @@ const HomePage = () => {
         <Tabs defaultValue={activeCollection} value={activeCollection} onValueChange={setActiveCollection} className="w-full">
           <TabsList className="w-full h-12 bg-background rounded-none border-b border-border p-0 justify-start overflow-x-auto no-scrollbar">
             {defaultCollections.map(collection => {
-              const Icon = collection.icon;
+              // Get the correct icon component based on collection.id
+              let IconComponent = null;
+              if (collection.id === "favorites") IconComponent = Heart;
+              else if (collection.id === "to-read") IconComponent = BookOpen;
+              else if (collection.id === "completed") IconComponent = CheckSquare;
+              
               return (
                 <div key={collection.id} className="relative group">
                   <TabsTrigger 
                     value={collection.id} 
                     className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center"
                   >
-                    {Icon && <Icon className="w-4 h-4" />}
+                    {IconComponent && <IconComponent className="w-4 h-4" />}
                     <span>{collection.name}</span>
                     <Badge variant="secondary" className="ml-1">
                       {collection.id === "all" ? allCount : 
