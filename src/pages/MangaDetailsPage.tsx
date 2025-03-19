@@ -40,7 +40,7 @@ const MangaDetailsPage = () => {
     
     // Check which collection this manga belongs to
     for (const collection of collections) {
-      if (collection.mangaIds.includes(manga.id)) {
+      if (collection.mangaIds && collection.mangaIds.includes(manga.id)) {
         setActiveCollectionId(collection.id);
         break;
       }
@@ -111,20 +111,28 @@ const MangaDetailsPage = () => {
   };
   
   const handleSelectCollection = (collectionId: string) => {
-    // First, remove manga from any existing collection
+    // First, ensure all collections have a mangaIds array
     const updatedCollections = collections.map(collection => ({
       ...collection,
-      mangaIds: collection.mangaIds.filter(id => id !== manga.id)
+      mangaIds: collection.mangaIds || []
+    }));
+    
+    // Then, remove manga from any existing collection
+    const collectionsWithMangaRemoved = updatedCollections.map(collection => ({
+      ...collection,
+      mangaIds: collection.mangaIds?.filter(id => id !== manga.id) || []
     }));
     
     // Then add it to the selected collection
-    const finalCollections = updatedCollections.map(collection => 
-      collection.id === collectionId 
-        ? { ...collection, mangaIds: [...collection.mangaIds, manga.id] } 
+    const finalCollections = collectionsWithMangaRemoved.map(collection => 
+      collection.id === collectionId
+        ? { ...collection, mangaIds: [...(collection.mangaIds || []), manga.id] }
         : collection
     );
     
+    // Update collections state and localStorage
     setCollections(finalCollections);
+    localStorage.setItem("collections", JSON.stringify(finalCollections));
     setActiveCollectionId(collectionId);
     
     setShowCollectionDialog(false);
@@ -146,14 +154,24 @@ const MangaDetailsPage = () => {
       mangaIds: [manga.id],
     };
     
-    // Remove manga from any existing collection first
+    // First, ensure all collections have a mangaIds array
     const updatedCollections = collections.map(collection => ({
       ...collection,
-      mangaIds: collection.mangaIds.filter(id => id !== manga.id)
+      mangaIds: collection.mangaIds || []
     }));
     
-    const finalCollections = [...updatedCollections, newCollection];
+    // Remove manga from any existing collection
+    const collectionsWithMangaRemoved = updatedCollections.map(collection => ({
+      ...collection,
+      mangaIds: collection.mangaIds?.filter(id => id !== manga.id) || []
+    }));
+    
+    // Add the new collection
+    const finalCollections = [...collectionsWithMangaRemoved, newCollection];
+    
+    // Update collections state and localStorage
     setCollections(finalCollections);
+    localStorage.setItem("collections", JSON.stringify(finalCollections));
     setActiveCollectionId(newCollection.id);
     
     setShowCreateCollectionDialog(false);
@@ -328,7 +346,13 @@ const MangaDetailsPage = () => {
           </DialogHeader>
           <div className="py-4 space-y-2">
             {collections.map(collection => {
-              const isInCollection = collection.mangaIds.includes(manga.id);
+              // Skip default collections that are not meant for manual management
+              if (collection.id === "all" || collection.id === "favorites" || 
+                  collection.id === "to-read" || collection.id === "completed") {
+                return null;
+              }
+              
+              const isInCollection = collection.mangaIds?.includes(manga.id);
               
               return (
                 <button

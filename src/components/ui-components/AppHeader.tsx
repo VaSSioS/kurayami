@@ -76,13 +76,7 @@ const AppHeader = ({
         {rightElement}
         {rightElement2}
         
-        {showFilter && isHomePage && !rightElement && (
-          <Link to="/filter" className="p-2">
-            <Filter className="w-5 h-5" />
-          </Link>
-        )}
-        
-        {showSearch && !rightElement2 && (
+        {showSearch && (
           <Link to="/search" className="p-2">
             <Search className="w-5 h-5" />
           </Link>

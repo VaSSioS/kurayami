@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { SortAsc, Filter, Heart, BookOpen, CheckSquare } from "lucide-react";
+import { Heart, BookOpen, CheckSquare } from "lucide-react";
 import AppHeader from "@/components/ui-components/AppHeader";
 import BottomNavigation from "@/components/ui-components/BottomNavigation";
 import MangaCard from "@/components/ui-components/MangaCard";
@@ -19,29 +19,34 @@ interface Collection {
   id: string;
   name: string;
   icon: React.ComponentType<any> | null;
+  mangaIds: string[];
 }
 
-// Define default collection types
+// Define default collection types with mangaIds arrays
 const DEFAULT_COLLECTIONS: Collection[] = [
   {
     id: "all",
     name: "All",
-    icon: null
+    icon: null,
+    mangaIds: []  // All manga are shown here
   }, 
   {
     id: "favorites",
     name: "Favorites",
-    icon: Heart
+    icon: Heart,
+    mangaIds: []  // Favorites are determined by manga.isFavorite
   }, 
   {
     id: "to-read",
     name: "To Read",
-    icon: BookOpen
+    icon: BookOpen,
+    mangaIds: []  // To read are determined by !manga.isCompleted && !manga.currentChapter
   }, 
   {
     id: "completed",
     name: "Completed",
-    icon: CheckSquare
+    icon: CheckSquare,
+    mangaIds: []  // Completed are determined by manga.isCompleted
   }
 ];
 
@@ -55,11 +60,30 @@ const HomePage = () => {
     // Get stored active collection or default to "all"
     return localStorage.getItem("activeCollection") || "all";
   });
-  const [defaultCollections, setDefaultCollections] = useState<Collection[]>(() => {
-    // Get stored default collections or use DEFAULT_COLLECTIONS
+  
+  // Update to include mangaIds in the collections
+  const [collections, setCollections] = useState<Collection[]>(() => {
+    // First check for user collections
+    const storedUserCollections = localStorage.getItem("collections");
+    const userCollections = storedUserCollections ? JSON.parse(storedUserCollections) : [];
+    
+    // Then check for default collections
     const storedDefaults = localStorage.getItem("defaultCollections");
-    return storedDefaults ? JSON.parse(storedDefaults) : DEFAULT_COLLECTIONS;
+    const defaultCollections = storedDefaults ? JSON.parse(storedDefaults) : DEFAULT_COLLECTIONS;
+    
+    // Make sure default collections have the right structure
+    const formattedDefaultCollections = defaultCollections.map((collection: any) => {
+      // Ensure each collection has a mangaIds array
+      if (!collection.mangaIds) {
+        collection.mangaIds = [];
+      }
+      return collection;
+    });
+    
+    // Combine user collections with default collections
+    return [...formattedDefaultCollections, ...userCollections];
   });
+  
   const [editingCollection, setEditingCollection] = useState<{
     id: string;
     name: string;
@@ -72,75 +96,39 @@ const HomePage = () => {
     localStorage.setItem("activeCollection", activeCollection);
   }, [activeCollection]);
 
-  // Effect to update default collections in localStorage
+  // Effect to update collections in localStorage
   useEffect(() => {
+    // Save all collections (both default and user-created) to localStorage
+    localStorage.setItem("collections", JSON.stringify(collections));
+    
+    // For backward compatibility, also save default collections separately
+    const defaultCollections = collections.filter(c => 
+      ["all", "favorites", "to-read", "completed"].includes(c.id)
+    );
     localStorage.setItem("defaultCollections", JSON.stringify(defaultCollections));
-  }, [defaultCollections]);
+  }, [collections]);
 
   // Effect to update sort preference in localStorage
   useEffect(() => {
     localStorage.setItem("sortPreference", sortBy);
   }, [sortBy]);
 
-  const handleSortClick = () => {
-    // Toggle between different sort options
-    const sortOptions = ["last_read", "a_z", "recent", "popular"];
-    const currentIndex = sortOptions.indexOf(sortBy);
-    const nextIndex = (currentIndex + 1) % sortOptions.length;
-    setSortBy(sortOptions[nextIndex]);
-    toast.success(`Sorted by ${getSortLabel(sortOptions[nextIndex])}`);
-  };
-
-  const handleFilterClick = () => {
-    navigate('/filter');
-  };
-
-  // Get sort label based on current sort option
-  const getSortLabel = (sort = sortBy) => {
-    switch (sort) {
-      case "last_read":
-        return "Last Read";
-      case "a_z":
-        return "A-Z";
-      case "recent":
-        return "Recent";
-      case "popular":
-        return "Popular";
-      default:
-        return "Sort";
-    }
-  };
-
-  // Collection counts
-  const allCount = mockManga.length;
-  const favoritesCount = mockManga.filter(m => m.isFavorite).length;
-  const toReadCount = mockManga.filter(m => !m.isCompleted && !m.currentChapter).length;
-  const completedCount = mockManga.filter(m => m.isCompleted).length;
-
   const handleRenameCollection = () => {
     if (!editingCollection || !newCollectionName.trim()) return;
     
     // Update collection name
-    const updatedCollections = defaultCollections.map(collection => 
+    const updatedCollections = collections.map(collection => 
       collection.id === editingCollection.id ? {
         ...collection,
         name: newCollectionName
       } : collection
     );
     
-    setDefaultCollections(updatedCollections);
+    setCollections(updatedCollections);
     toast.success(`Collection renamed to "${newCollectionName}"`);
     setShowRenameDialog(false);
     setEditingCollection(null);
     setNewCollectionName("");
-  };
-
-  // Helper function to get the appropriate icon component
-  const getCollectionIcon = (iconName: string | null) => {
-    if (iconName === 'Heart') return Heart;
-    if (iconName === 'BookOpen') return BookOpen;
-    if (iconName === 'CheckSquare') return CheckSquare;
-    return null;
   };
 
   // Filter manga based on active collection
@@ -153,9 +141,22 @@ const HomePage = () => {
       return mockManga.filter(m => !m.isCompleted && !m.currentChapter);
     } else if (activeCollection === "completed") {
       return mockManga.filter(m => m.isCompleted);
+    } else {
+      // Find the collection
+      const collection = collections.find(c => c.id === activeCollection);
+      if (collection && collection.mangaIds.length > 0) {
+        // Return manga that are in this collection
+        return mockManga.filter(manga => collection.mangaIds.includes(manga.id));
+      }
+      return [];
     }
-    return mockManga;
-  }, [activeCollection]);
+  }, [activeCollection, collections]);
+
+  // Collection counts
+  const allCount = mockManga.length;
+  const favoritesCount = mockManga.filter(m => m.isFavorite).length;
+  const toReadCount = mockManga.filter(m => !m.isCompleted && !m.currentChapter).length;
+  const completedCount = mockManga.filter(m => m.isCompleted).length;
 
   return (
     <div className="pb-20 animate-fadeIn">
@@ -164,28 +165,20 @@ const HomePage = () => {
         showBackButton={false} 
         showProfile={true}
         showSettings={true}
-        rightElement={
-          <Button variant="ghost" size="icon" onClick={handleSortClick}>
-            <SortAsc className="h-5 w-5" />
-          </Button>
-        }
-        rightElement2={
-          <Button variant="ghost" size="icon" onClick={() => navigate('/search')}>
-            <Filter className="h-5 w-5" />
-          </Button>
-        }
       />
 
       <main className="container px-4 py-2 space-y-6">
         {/* Collection Filter Tabs */}
         <Tabs defaultValue={activeCollection} value={activeCollection} onValueChange={setActiveCollection} className="w-full">
           <TabsList className="w-full h-12 bg-background rounded-none border-b border-border p-0 justify-start overflow-x-auto no-scrollbar">
-            {defaultCollections.map(collection => {
-              // Get the correct icon component based on collection.id
-              let IconComponent = null;
-              if (collection.id === "favorites") IconComponent = Heart;
-              else if (collection.id === "to-read") IconComponent = BookOpen;
-              else if (collection.id === "completed") IconComponent = CheckSquare;
+            {collections.map(collection => {
+              // Use the correct icon or null
+              const IconComponent = collection.icon;
+              const count = collection.id === "all" ? allCount 
+                : collection.id === "favorites" ? favoritesCount 
+                : collection.id === "to-read" ? toReadCount 
+                : collection.id === "completed" ? completedCount
+                : (collection.mangaIds ? collection.mangaIds.length : 0);
               
               return (
                 <div key={collection.id} className="relative group">
@@ -196,10 +189,7 @@ const HomePage = () => {
                     {IconComponent && <IconComponent className="w-4 h-4" />}
                     <span>{collection.name}</span>
                     <Badge variant="secondary" className="ml-1">
-                      {collection.id === "all" ? allCount : 
-                       collection.id === "favorites" ? favoritesCount : 
-                       collection.id === "to-read" ? toReadCount : 
-                       collection.id === "completed" ? completedCount : 0}
+                      {count}
                     </Badge>
                   </TabsTrigger>
                   
@@ -210,7 +200,11 @@ const HomePage = () => {
                         size="icon" 
                         className="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <SortAsc className="h-4 w-4" />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="1"></circle>
+                          <circle cx="12" cy="5" r="1"></circle>
+                          <circle cx="12" cy="19" r="1"></circle>
+                        </svg>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
