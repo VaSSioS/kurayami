@@ -6,11 +6,11 @@ import BottomNavigation from "@/components/ui-components/BottomNavigation";
 import MangaCard from "@/components/ui-components/MangaCard";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { mockManga, mockCollections } from "@/data/mockData";
+import { mockManga } from "@/data/mockData";
 import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
@@ -39,15 +39,14 @@ const HomePage = () => {
     // Get stored sort preference or default to "last_read"
     return localStorage.getItem("sortPreference") || "last_read";
   });
-  const [filterActive, setFilterActive] = useState(false);
   const [activeCollection, setActiveCollection] = useState(() => {
     // Get stored active collection or default to "all"
     return localStorage.getItem("activeCollection") || "all";
   });
-  const [collections, setCollections] = useState(() => {
-    // Get stored collections or use mock data
-    const storedCollections = localStorage.getItem("collections");
-    return storedCollections ? JSON.parse(storedCollections) : mockCollections;
+  const [defaultCollections, setDefaultCollections] = useState(() => {
+    // Get stored default collections or use DEFAULT_COLLECTIONS
+    const storedDefaults = localStorage.getItem("defaultCollections");
+    return storedDefaults ? JSON.parse(storedDefaults) : DEFAULT_COLLECTIONS;
   });
   const [editingCollection, setEditingCollection] = useState<{
     id: string;
@@ -61,10 +60,10 @@ const HomePage = () => {
     localStorage.setItem("activeCollection", activeCollection);
   }, [activeCollection]);
 
-  // Effect to update collections in localStorage
+  // Effect to update default collections in localStorage
   useEffect(() => {
-    localStorage.setItem("collections", JSON.stringify(collections));
-  }, [collections]);
+    localStorage.setItem("defaultCollections", JSON.stringify(defaultCollections));
+  }, [defaultCollections]);
 
   // Effect to update sort preference in localStorage
   useEffect(() => {
@@ -77,6 +76,7 @@ const HomePage = () => {
     const currentIndex = sortOptions.indexOf(sortBy);
     const nextIndex = (currentIndex + 1) % sortOptions.length;
     setSortBy(sortOptions[nextIndex]);
+    toast.success(`Sorted by ${getSortLabel(sortOptions[nextIndex])}`);
   };
 
   const handleFilterClick = () => {
@@ -84,8 +84,8 @@ const HomePage = () => {
   };
 
   // Get sort label based on current sort option
-  const getSortLabel = () => {
-    switch (sortBy) {
+  const getSortLabel = (sort = sortBy) => {
+    switch (sort) {
       case "last_read":
         return "Last Read";
       case "a_z":
@@ -108,25 +108,16 @@ const HomePage = () => {
   const handleRenameCollection = () => {
     if (!editingCollection || !newCollectionName.trim()) return;
     
-    if (DEFAULT_COLLECTIONS.map(c => c.id).includes(editingCollection.id)) {
-      // Update default collection name in local storage
-      const updatedDefaults = DEFAULT_COLLECTIONS.map(c => 
-        c.id === editingCollection.id ? {...c, name: newCollectionName} : c
-      );
-      localStorage.setItem("defaultCollections", JSON.stringify(updatedDefaults));
-      toast.success(`Collection renamed to "${newCollectionName}"`);
-    } else {
-      // Update custom collection name
-      const updatedCollections = collections.map(collection => 
-        collection.id === editingCollection.id ? {
-          ...collection,
-          name: newCollectionName
-        } : collection
-      );
-      setCollections(updatedCollections);
-      toast.success(`Collection renamed to "${newCollectionName}"`);
-    }
+    // Update collection name
+    const updatedCollections = defaultCollections.map(collection => 
+      collection.id === editingCollection.id ? {
+        ...collection,
+        name: newCollectionName
+      } : collection
+    );
     
+    setDefaultCollections(updatedCollections);
+    toast.success(`Collection renamed to "${newCollectionName}"`);
     setShowRenameDialog(false);
     setEditingCollection(null);
     setNewCollectionName("");
@@ -142,29 +133,20 @@ const HomePage = () => {
       return mockManga.filter(m => !m.isCompleted && !m.currentChapter);
     } else if (activeCollection === "completed") {
       return mockManga.filter(m => m.isCompleted);
-    } else if (activeCollection.startsWith("collection-")) {
-      const collectionId = activeCollection.replace("collection-", "");
-      const collection = collections.find(c => c.id === collectionId);
-      return collection ? mockManga.filter(m => collection.mangaIds.includes(m.id)) : [];
     }
     return mockManga;
-  }, [activeCollection, collections]);
+  }, [activeCollection]);
 
   return (
     <div className="pb-20 animate-fadeIn">
       <AppHeader 
         title="Library" 
         showBackButton={false} 
-        showProfile={true} 
-        showSettings={false} 
+        showProfile={true}
+        showSettings={true}
         rightElement={
           <Button variant="ghost" size="icon" onClick={handleSortClick}>
             <SortAsc className="h-5 w-5" />
-          </Button>
-        }
-        rightElement2={
-          <Button variant="ghost" size="icon" onClick={handleFilterClick}>
-            <Filter className="h-5 w-5" />
           </Button>
         }
       />
@@ -173,7 +155,7 @@ const HomePage = () => {
         {/* Collection Filter Tabs */}
         <Tabs defaultValue="all" className="w-full" onValueChange={setActiveCollection} value={activeCollection}>
           <TabsList className="w-full h-12 bg-background rounded-none border-b border-border p-0 justify-start overflow-x-auto no-scrollbar">
-            {DEFAULT_COLLECTIONS.map(collection => {
+            {defaultCollections.map(collection => {
               const Icon = collection.icon;
               return (
                 <div key={collection.id} className="relative group">
@@ -214,45 +196,6 @@ const HomePage = () => {
                 </div>
               );
             })}
-            
-            {/* Show the user collections from profile */}
-            {collections.map(collection => (
-              <div key={collection.id} className="relative group">
-                <TabsTrigger 
-                  value={`collection-${collection.id}`} 
-                  className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center"
-                >
-                  <span>{collection.name}</span>
-                  <Badge variant="secondary" className="ml-1">
-                    {collection.mangaIds.length}
-                  </Badge>
-                </TabsTrigger>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <SortAsc className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => {
-                      setEditingCollection({
-                        id: collection.id,
-                        name: collection.name
-                      });
-                      setNewCollectionName(collection.name);
-                      setShowRenameDialog(true);
-                    }}>
-                      Rename
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ))}
           </TabsList>
         </Tabs>
 
@@ -281,6 +224,9 @@ const HomePage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rename Collection</DialogTitle>
+            <DialogDescription>
+              Enter a new name for this collection.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input 
@@ -288,6 +234,7 @@ const HomePage = () => {
               value={newCollectionName} 
               onChange={e => setNewCollectionName(e.target.value)} 
               className="w-full" 
+              autoFocus
             />
           </div>
           <DialogFooter>

@@ -14,7 +14,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 // Define the accent colors
@@ -27,45 +27,39 @@ const ACCENT_COLORS = [
 ];
 
 const SettingsPage = () => {
+  // Initialize states from localStorage at the component level
   const [darkMode, setDarkMode] = useState(() => {
-    // Get stored theme preference or default to false (light mode)
     return localStorage.getItem("darkMode") === "true";
   });
   
   const [notifications, setNotifications] = useState(() => {
-    // Get stored notification preference or default to true
     return localStorage.getItem("notifications") !== "false";
   });
   
   const [mangaUpdates, setMangaUpdates] = useState(() => {
-    // Get stored manga updates preference or default to true
     return localStorage.getItem("mangaUpdates") !== "false";
   });
   
   const [fontScale, setFontScale] = useState(() => {
-    // Get stored font scale or default to 100%
     const storedFontScale = localStorage.getItem("fontScale");
     return storedFontScale ? [parseInt(storedFontScale)] : [100];
   });
   
   const [accentColor, setAccentColor] = useState(() => {
-    // Get stored accent color or default to red
     return localStorage.getItem("accentColor") || "red";
   });
   
   const [language, setLanguage] = useState(() => {
-    // Get stored language or default to english
     return localStorage.getItem("language") || "english";
   });
   
   const [showClearHistoryDialog, setShowClearHistoryDialog] = useState(false);
   const [readingHistory, setReadingHistory] = useState<string[]>(() => {
-    // Get stored reading history or default to empty array
     const storedHistory = localStorage.getItem("readingHistory");
     return storedHistory ? JSON.parse(storedHistory) : [];
   });
   
-  // Apply theme on initial load and when changed
+  // Apply theme immediately on mount and when darkMode state changes
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -75,13 +69,13 @@ const SettingsPage = () => {
     localStorage.setItem("darkMode", darkMode.toString());
   }, [darkMode]);
   
-  // Apply font size on initial load and when changed
+  // Apply font size when it changes
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontScale[0]}%`;
     localStorage.setItem("fontScale", fontScale[0].toString());
   }, [fontScale]);
   
-  // Apply accent color on initial load and when changed
+  // Apply accent color when it changes
   useEffect(() => {
     const colorObj = ACCENT_COLORS.find(c => c.name === accentColor);
     if (colorObj) {
@@ -97,8 +91,10 @@ const SettingsPage = () => {
   }, [readingHistory]);
   
   const handleToggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    toast.success(!darkMode ? "Dark mode enabled" : "Light mode enabled");
+    const newValue = !darkMode;
+    setDarkMode(newValue);
+    localStorage.setItem("darkMode", newValue.toString());
+    toast.success(newValue ? "Dark mode enabled" : "Light mode enabled");
   };
   
   const handleToggleNotifications = () => {
@@ -117,11 +113,20 @@ const SettingsPage = () => {
   
   const handleFontSizeChange = (value: number[]) => {
     setFontScale(value);
+    localStorage.setItem("fontScale", value[0].toString());
     toast.success(`Font size set to ${value[0]}%`);
   };
   
   const handleAccentColorChange = (color: string) => {
     setAccentColor(color);
+    localStorage.setItem("accentColor", color);
+    
+    const colorObj = ACCENT_COLORS.find(c => c.name === color);
+    if (colorObj) {
+      document.documentElement.style.setProperty('--accent', colorObj.color);
+      document.documentElement.style.setProperty('--accent-foreground', '#ffffff');
+    }
+    
     toast.success(`Accent color changed to ${ACCENT_COLORS.find(c => c.name === color)?.displayName || color}`);
   };
   
@@ -134,6 +139,7 @@ const SettingsPage = () => {
   const handleClearHistory = () => {
     // Clear reading history
     setReadingHistory([]);
+    localStorage.setItem("readingHistory", JSON.stringify([]));
     setShowClearHistoryDialog(false);
     toast.success("Reading history cleared");
   };
@@ -172,7 +178,7 @@ const SettingsPage = () => {
                   key={color.name}
                   onClick={() => handleAccentColorChange(color.name)}
                   className={`w-8 h-8 rounded-full transition-all ${
-                    accentColor === color.name ? 'ring-2 ring-white scale-110' : ''
+                    accentColor === color.name ? 'ring-2 ring-foreground scale-110' : ''
                   }`}
                   style={{ backgroundColor: color.color }}
                   aria-label={`Set accent color to ${color.displayName}`}
@@ -326,10 +332,10 @@ const SettingsPage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Clear Reading History</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. All reading history will be permanently removed.
+            </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <p>Are you sure you want to clear your reading history? This action cannot be undone.</p>
-          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowClearHistoryDialog(false)}>
               Cancel

@@ -41,9 +41,6 @@ const BottomNavigation = () => {
     return false;
   };
   
-  // Hide settings button from specific pages
-  const hideSettings = isActive("/sources") || isActive("/downloads") || isActive("/history");
-  
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border">
       <div className="flex items-center justify-around">
@@ -76,7 +73,6 @@ const BottomNavigation = () => {
           icon={Settings} 
           label="Settings" 
           isActive={isActive("/settings")}
-          hide={hideSettings}
         />
       </div>
     </nav>

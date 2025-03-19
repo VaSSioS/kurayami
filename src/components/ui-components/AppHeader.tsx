@@ -34,6 +34,12 @@ const AppHeader = ({
   const location = useLocation();
   const navigate = useNavigate();
   const isHomePage = location.pathname === "/";
+  const isSourcesPage = location.pathname.startsWith("/sources");
+  const isDownloadsPage = location.pathname.startsWith("/downloads");
+  const isHistoryPage = location.pathname.startsWith("/history");
+  
+  // Hide settings button from specific pages in header
+  const hideSettings = isSourcesPage || isDownloadsPage || isHistoryPage;
   
   const handleBackClick = () => {
     if (onBackClick) {
@@ -88,7 +94,7 @@ const AppHeader = ({
           </Link>
         )}
         
-        {showSettings && (
+        {showSettings && !hideSettings && (
           <Link to="/settings" className="p-2">
             <Settings className="w-5 h-5" />
           </Link>
