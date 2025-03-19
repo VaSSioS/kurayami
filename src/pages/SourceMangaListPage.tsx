@@ -27,7 +27,7 @@ const SourceMangaListPage = () => {
           <h2 className="text-xl font-semibold">Source Not Found</h2>
           <p className="text-muted-foreground">The source you're looking for doesn't exist.</p>
           <Button 
-            variant="accent" 
+            variant="secondary" 
             onClick={() => navigate("/sources")}
           >
             Return to Sources
