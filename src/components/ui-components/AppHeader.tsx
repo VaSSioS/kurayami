@@ -23,7 +23,7 @@ const AppHeader = ({
   showBackButton = false,
   showSearch = true,
   showSettings = true,
-  showFilter = false, // Changed default to false
+  showFilter = false,
   showProfile = true,
   className,
   children,
@@ -35,11 +35,12 @@ const AppHeader = ({
   const navigate = useNavigate();
   const isHomePage = location.pathname === "/";
   const isSourcesPage = location.pathname.startsWith("/sources");
+  const isSearchPage = location.pathname.startsWith("/search");
   const isDownloadsPage = location.pathname.startsWith("/downloads");
   const isHistoryPage = location.pathname.startsWith("/history");
   
   // Hide settings button from specific pages in header
-  const hideSettings = isSourcesPage || isDownloadsPage || isHistoryPage;
+  const hideSettings = isSourcesPage || isDownloadsPage || isHistoryPage || isSearchPage;
   
   const handleBackClick = () => {
     if (onBackClick) {

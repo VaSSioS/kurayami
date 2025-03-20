@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Search, Plus, MoreVertical, ExternalLink } from "lucide-react";
+import { Plus, MoreVertical, ExternalLink } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -22,6 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getSources, saveSources } from "@/utils/storage";
 
 // Source interface
 interface Source {
@@ -35,8 +36,7 @@ const SourcesPage = () => {
   const navigate = useNavigate();
   const [sources, setSources] = useState<Source[]>(() => {
     // Get sources from localStorage or use default
-    const storedSources = localStorage.getItem("sources");
-    return storedSources ? JSON.parse(storedSources) : [
+    return getSources() || [
       { id: "1", name: "MangaDex", domain: "mangadex.org", icon: "https://mangadex.org/favicon.ico" },
       { id: "2", name: "Manga Plus", domain: "mangaplus.shueisha.co.jp", icon: "https://mangaplus.shueisha.co.jp/favicon.ico" },
     ];
@@ -54,7 +54,7 @@ const SourcesPage = () => {
   
   // Save sources to localStorage when they change
   useEffect(() => {
-    localStorage.setItem("sources", JSON.stringify(sources));
+    saveSources(sources);
   }, [sources]);
   
   const handleAddSource = () => {
@@ -139,6 +139,8 @@ const SourcesPage = () => {
   };
   
   const handleOpenSource = (source: Source) => {
+    // Store source url in localStorage for manga list page
+    localStorage.setItem("selected_source_url", `https://${source.domain}`);
     // Navigate to source manga list page
     navigate(`/sources/${source.id}`);
   };
@@ -149,17 +151,11 @@ const SourcesPage = () => {
         title="Sources" 
         showBackButton={false}
         showSettings={false}
+        showSearch={true}
         rightElement={
           <Button variant="ghost" size="icon" onClick={() => setShowAddDialog(true)}>
             <Plus className="h-5 w-5" />
           </Button>
-        }
-        rightElement2={
-          <Link to="/search">
-            <Button variant="ghost" size="icon">
-              <Search className="h-5 w-5" />
-            </Button>
-          </Link>
         }
       />
       
