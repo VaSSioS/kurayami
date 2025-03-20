@@ -115,3 +115,18 @@ export const getDownloadedChapters = (mangaId: string): string[] => {
     return [];
   }
 };
+
+// Clear browser cache to prevent stale data
+export const clearCache = (): void => {
+  try {
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        names.forEach((name) => {
+          caches.delete(name);
+        });
+      });
+    }
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+  }
+};

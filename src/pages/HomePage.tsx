@@ -14,12 +14,7 @@ import { saveCollections, getCollections, saveActiveCollection, getActiveCollect
 import { Manga } from "@/types/manga";
 
 const HomePage = () => {
-  // Active collection state
-  const [activeCollection, setActiveCollection] = useState<string>(() => {
-    return getActiveCollection() || "all";
-  });
-  
-  // Collections state
+  // Collections state with proper initialization
   const [collections, setCollections] = useState<Collection[]>(() => {
     try {
       // First check for collections in localStorage
@@ -36,6 +31,11 @@ const HomePage = () => {
     }
   });
   
+  // Active collection state with proper initialization
+  const [activeCollection, setActiveCollection] = useState<string>(() => {
+    return getActiveCollection() || "all";
+  });
+  
   const [editingCollection, setEditingCollection] = useState<{
     id: string;
     name: string;
@@ -43,15 +43,15 @@ const HomePage = () => {
   const [newCollectionName, setNewCollectionName] = useState("");
   const [showRenameDialog, setShowRenameDialog] = useState(false);
 
-  // Effect to update active collection in localStorage
-  useEffect(() => {
-    saveActiveCollection(activeCollection);
-  }, [activeCollection]);
-
-  // Effect to update collections in localStorage
+  // Effect to save collections whenever they change
   useEffect(() => {
     saveCollections(collections);
   }, [collections]);
+
+  // Effect to save active collection whenever it changes
+  useEffect(() => {
+    saveActiveCollection(activeCollection);
+  }, [activeCollection]);
 
   const handleRenameCollection = () => {
     if (!editingCollection || !newCollectionName.trim()) return;
@@ -91,6 +91,7 @@ const HomePage = () => {
     });
     
     setCollections(updatedCollections);
+    saveCollections(updatedCollections); // Immediate save to ensure persistence
   };
 
   // Filter manga based on active collection
