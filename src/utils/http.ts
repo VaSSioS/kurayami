@@ -19,6 +19,8 @@ export const fetchData = async <T>(url: string, options: RequestInit = {}): Prom
       ...defaultHeaders,
       ...(options.headers || {}),
     },
+    // Add cache control to prevent caching issues
+    cache: 'no-store',
   };
 
   try {

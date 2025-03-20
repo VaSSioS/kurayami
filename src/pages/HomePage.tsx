@@ -15,8 +15,8 @@ import { Manga } from "@/types/manga";
 
 const HomePage = () => {
   // Active collection state
-  const [activeCollection, setActiveCollection] = useState(() => {
-    return getActiveCollection();
+  const [activeCollection, setActiveCollection] = useState<string>(() => {
+    return getActiveCollection() || "all";
   });
   
   // Collections state
@@ -130,8 +130,12 @@ const HomePage = () => {
       return { ...collection, count: toReadCount };
     } else if (collection.id === "completed") {
       return { ...collection, count: completedCount };
+    } else {
+      return { 
+        ...collection, 
+        count: collection.mangaIds.length 
+      };
     }
-    return collection;
   });
 
   return (

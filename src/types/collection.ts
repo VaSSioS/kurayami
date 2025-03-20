@@ -1,10 +1,11 @@
 
 import { Heart, BookOpen, CheckSquare } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export interface Collection {
   id: string;
   name: string;
-  icon: React.ElementType | null;
+  icon: LucideIcon | null;
   mangaIds: string[];
 }
 
