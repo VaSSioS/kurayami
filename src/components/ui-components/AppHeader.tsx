@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft, Search, Settings, Filter, User } from "lucide-react";
+import { ChevronLeft, Search, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AppHeaderProps {
@@ -23,7 +23,7 @@ const AppHeader = ({
   showBackButton = false,
   showSearch = true,
   showSettings = true,
-  showFilter = true,
+  showFilter = false, // Changed default to false
   showProfile = true,
   className,
   children,

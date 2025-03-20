@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Heart, BookOpen, CheckSquare } from "lucide-react";
+import { Heart, BookOpen, CheckSquare, Plus } from "lucide-react";
 import AppHeader from "@/components/ui-components/AppHeader";
 import BottomNavigation from "@/components/ui-components/BottomNavigation";
 import MangaCard from "@/components/ui-components/MangaCard";
@@ -14,11 +14,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-// Define collection type
+// Define collection type with proper icon handling
 interface Collection {
   id: string;
   name: string;
-  icon: React.ComponentType<any> | null;
+  icon: React.ElementType | null; // Changed from React.ComponentType to React.ElementType
   mangaIds: string[];
 }
 
@@ -52,36 +52,26 @@ const DEFAULT_COLLECTIONS: Collection[] = [
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [sortBy, setSortBy] = useState(() => {
-    // Get stored sort preference or default to "last_read"
-    return localStorage.getItem("sortPreference") || "last_read";
-  });
   const [activeCollection, setActiveCollection] = useState(() => {
     // Get stored active collection or default to "all"
     return localStorage.getItem("activeCollection") || "all";
   });
   
-  // Update to include mangaIds in the collections
+  // Load collections from localStorage
   const [collections, setCollections] = useState<Collection[]>(() => {
-    // First check for user collections
-    const storedUserCollections = localStorage.getItem("collections");
-    const userCollections = storedUserCollections ? JSON.parse(storedUserCollections) : [];
-    
-    // Then check for default collections
-    const storedDefaults = localStorage.getItem("defaultCollections");
-    const defaultCollections = storedDefaults ? JSON.parse(storedDefaults) : DEFAULT_COLLECTIONS;
-    
-    // Make sure default collections have the right structure
-    const formattedDefaultCollections = defaultCollections.map((collection: any) => {
-      // Ensure each collection has a mangaIds array
-      if (!collection.mangaIds) {
-        collection.mangaIds = [];
+    try {
+      // First check for collections in localStorage
+      const storedCollections = localStorage.getItem("collections");
+      if (storedCollections) {
+        return JSON.parse(storedCollections);
       }
-      return collection;
-    });
-    
-    // Combine user collections with default collections
-    return [...formattedDefaultCollections, ...userCollections];
+      
+      // If no collections found, use defaults
+      return DEFAULT_COLLECTIONS;
+    } catch (error) {
+      console.error("Error loading collections:", error);
+      return DEFAULT_COLLECTIONS;
+    }
   });
   
   const [editingCollection, setEditingCollection] = useState<{
@@ -98,20 +88,12 @@ const HomePage = () => {
 
   // Effect to update collections in localStorage
   useEffect(() => {
-    // Save all collections (both default and user-created) to localStorage
-    localStorage.setItem("collections", JSON.stringify(collections));
-    
-    // For backward compatibility, also save default collections separately
-    const defaultCollections = collections.filter(c => 
-      ["all", "favorites", "to-read", "completed"].includes(c.id)
-    );
-    localStorage.setItem("defaultCollections", JSON.stringify(defaultCollections));
+    try {
+      localStorage.setItem("collections", JSON.stringify(collections));
+    } catch (error) {
+      console.error("Error saving collections:", error);
+    }
   }, [collections]);
-
-  // Effect to update sort preference in localStorage
-  useEffect(() => {
-    localStorage.setItem("sortPreference", sortBy);
-  }, [sortBy]);
 
   const handleRenameCollection = () => {
     if (!editingCollection || !newCollectionName.trim()) return;
@@ -165,20 +147,30 @@ const HomePage = () => {
         showBackButton={false} 
         showProfile={true}
         showSettings={true}
+        showSearch={true}
       />
 
       <main className="container px-4 py-2 space-y-6">
         {/* Collection Filter Tabs */}
         <Tabs defaultValue={activeCollection} value={activeCollection} onValueChange={setActiveCollection} className="w-full">
           <TabsList className="w-full h-12 bg-background rounded-none border-b border-border p-0 justify-start overflow-x-auto no-scrollbar">
-            {collections.map(collection => {
-              // Use the correct icon or null
+            {collections.map((collection) => {
+              // Determine the count based on collection ID
+              let count = 0;
+              if (collection.id === "all") {
+                count = allCount;
+              } else if (collection.id === "favorites") {
+                count = favoritesCount;
+              } else if (collection.id === "to-read") {
+                count = toReadCount;
+              } else if (collection.id === "completed") {
+                count = completedCount;
+              } else {
+                count = collection.mangaIds?.length || 0;
+              }
+              
+              // Create the proper icon element
               const IconComponent = collection.icon;
-              const count = collection.id === "all" ? allCount 
-                : collection.id === "favorites" ? favoritesCount 
-                : collection.id === "to-read" ? toReadCount 
-                : collection.id === "completed" ? completedCount
-                : (collection.mangaIds ? collection.mangaIds.length : 0);
               
               return (
                 <div key={collection.id} className="relative group">
@@ -193,40 +185,43 @@ const HomePage = () => {
                     </Badge>
                   </TabsTrigger>
                   
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="1"></circle>
-                          <circle cx="12" cy="5" r="1"></circle>
-                          <circle cx="12" cy="19" r="1"></circle>
-                        </svg>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => {
-                        setEditingCollection({
-                          id: collection.id,
-                          name: collection.name
-                        });
-                        setNewCollectionName(collection.name);
-                        setShowRenameDialog(true);
-                      }}>
-                        Rename
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {/* Only show dropdown for custom collections (not default ones) */}
+                  {!["all", "favorites", "to-read", "completed"].includes(collection.id) && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="12" cy="5" r="1"></circle>
+                            <circle cx="12" cy="19" r="1"></circle>
+                          </svg>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => {
+                          setEditingCollection({
+                            id: collection.id,
+                            name: collection.name
+                          });
+                          setNewCollectionName(collection.name);
+                          setShowRenameDialog(true);
+                        }}>
+                          Rename
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               );
             })}
           </TabsList>
         </Tabs>
 
-        {/* All Manga Section with Filters */}
+        {/* Manga Grid Section */}
         <section className="animate-slideUp" style={{
           animationDelay: "0.1s"
         }}>
@@ -243,6 +238,12 @@ const HomePage = () => {
               />
             ))}
           </div>
+          
+          {filteredManga.length === 0 && (
+            <div className="py-12 flex flex-col items-center justify-center">
+              <p className="text-muted-foreground text-center">No manga in this collection yet</p>
+            </div>
+          )}
         </section>
       </main>
 
