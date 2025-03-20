@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Collection } from "@/types/collection";
 
 interface CollectionTabsProps {
-  collections: Collection[];
+  collections: (Collection & { count?: number })[];
   activeCollection: string;
   setActiveCollection: (value: string) => void;
   onRenameClick: (collection: { id: string; name: string }) => void;
@@ -19,21 +19,6 @@ const CollectionTabs: React.FC<CollectionTabsProps> = ({
   setActiveCollection,
   onRenameClick
 }) => {
-  // Calculate collection counts
-  const getMangaCount = (collectionId: string, mangaIds: string[] = []) => {
-    if (collectionId === "all") {
-      return 0; // Will be updated by the parent component
-    } else if (collectionId === "favorites") {
-      return 0; // Will be updated by the parent component
-    } else if (collectionId === "to-read") {
-      return 0; // Will be updated by the parent component
-    } else if (collectionId === "completed") {
-      return 0; // Will be updated by the parent component
-    } else {
-      return mangaIds?.length || 0;
-    }
-  };
-
   return (
     <Tabs 
       defaultValue={activeCollection} 
@@ -44,7 +29,7 @@ const CollectionTabs: React.FC<CollectionTabsProps> = ({
       <TabsList className="w-full h-12 bg-background rounded-none border-b border-border p-0 justify-start overflow-x-auto no-scrollbar">
         {collections.map((collection) => {
           const isDefaultCollection = ["all", "favorites", "to-read", "completed"].includes(collection.id);
-          const count = getMangaCount(collection.id, collection.mangaIds);
+          const count = collection.count || 0;
           
           // Create the proper icon element if it exists
           const IconComponent = collection.icon;
