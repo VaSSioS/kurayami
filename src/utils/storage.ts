@@ -1,8 +1,10 @@
+
 /**
  * Utility functions for localStorage management
  */
 
 import { Collection } from '@/types/collection';
+import { toast } from 'sonner';
 
 // Collection storage
 export const saveCollections = (collections: Collection[]): void => {
@@ -18,6 +20,7 @@ export const saveCollections = (collections: Collection[]): void => {
     console.log('Collections saved successfully:', serializableCollections);
   } catch (error) {
     console.error('Error saving collections:', error);
+    toast.error('Failed to save collections');
   }
 };
 
@@ -37,6 +40,7 @@ export const getCollections = (): Collection[] => {
     });
   } catch (error) {
     console.error('Error loading collections:', error);
+    toast.error('Failed to load collections');
     return [];
   }
 };
@@ -47,6 +51,7 @@ export const saveSources = (sources: any[]): void => {
     localStorage.setItem('sources', JSON.stringify(sources));
   } catch (error) {
     console.error('Error saving sources:', error);
+    toast.error('Failed to save sources');
   }
 };
 
@@ -56,6 +61,7 @@ export const getSources = (): any[] => {
     return sources ? JSON.parse(sources) : [];
   } catch (error) {
     console.error('Error loading sources:', error);
+    toast.error('Failed to load sources');
     return [];
   }
 };
@@ -66,6 +72,7 @@ export const saveMangaFromSource = (sourceId: string, mangaList: any[]): void =>
     localStorage.setItem(`source_manga_${sourceId}`, JSON.stringify(mangaList));
   } catch (error) {
     console.error('Error saving manga from source:', error);
+    toast.error('Failed to save manga from source');
   }
 };
 
@@ -75,6 +82,7 @@ export const getMangaFromSource = (sourceId: string): any[] => {
     return mangaList ? JSON.parse(mangaList) : [];
   } catch (error) {
     console.error('Error loading manga from source:', error);
+    toast.error('Failed to load manga from source');
     return [];
   }
 };
@@ -85,6 +93,7 @@ export const saveMangaDetails = (mangaId: string, details: any): void => {
     localStorage.setItem(`manga_details_${mangaId}`, JSON.stringify(details));
   } catch (error) {
     console.error('Error saving manga details:', error);
+    toast.error('Failed to save manga details');
   }
 };
 
@@ -94,6 +103,7 @@ export const getMangaDetails = (mangaId: string): any | null => {
     return details ? JSON.parse(details) : null;
   } catch (error) {
     console.error('Error loading manga details:', error);
+    toast.error('Failed to load manga details');
     return null;
   }
 };
@@ -104,6 +114,7 @@ export const saveActiveCollection = (collectionId: string): void => {
     localStorage.setItem('activeCollection', collectionId);
   } catch (error) {
     console.error('Error saving active collection:', error);
+    toast.error('Failed to save active collection');
   }
 };
 
@@ -112,6 +123,7 @@ export const getActiveCollection = (): string => {
     return localStorage.getItem('activeCollection') || 'all';
   } catch (error) {
     console.error('Error loading active collection:', error);
+    toast.error('Failed to load active collection');
     return 'all';
   }
 };
@@ -122,6 +134,7 @@ export const saveDownloadedChapters = (mangaId: string, chapters: string[]): voi
     localStorage.setItem(`downloadedChapters-${mangaId}`, JSON.stringify(chapters));
   } catch (error) {
     console.error('Error saving downloaded chapters:', error);
+    toast.error('Failed to save downloaded chapters');
   }
 };
 
@@ -131,7 +144,68 @@ export const getDownloadedChapters = (mangaId: string): string[] => {
     return chapters ? JSON.parse(chapters) : [];
   } catch (error) {
     console.error('Error loading downloaded chapters:', error);
+    toast.error('Failed to load downloaded chapters');
     return [];
+  }
+};
+
+// Reading history storage
+export const saveReadingHistory = (history: any[]): void => {
+  try {
+    localStorage.setItem('readingHistory', JSON.stringify(history));
+  } catch (error) {
+    console.error('Error saving reading history:', error);
+    toast.error('Failed to save reading history');
+  }
+};
+
+export const getReadingHistory = (): any[] => {
+  try {
+    const history = localStorage.getItem('readingHistory');
+    return history ? JSON.parse(history) : [];
+  } catch (error) {
+    console.error('Error loading reading history:', error);
+    toast.error('Failed to load reading history');
+    return [];
+  }
+};
+
+// Settings storage
+export const saveSettings = (key: string, value: any): void => {
+  try {
+    localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
+  } catch (error) {
+    console.error(`Error saving setting ${key}:`, error);
+    toast.error(`Failed to save ${key} setting`);
+  }
+};
+
+export const getSetting = (key: string, defaultValue: any): any => {
+  try {
+    const value = localStorage.getItem(key);
+    if (value === null) return defaultValue;
+    
+    // Try to parse as JSON if it's an object
+    if (value.startsWith('{') || value.startsWith('[')) {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
+    }
+    
+    // Handle boolean values
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    
+    // Handle numeric values
+    if (!isNaN(Number(value))) return Number(value);
+    
+    return value;
+  } catch (error) {
+    console.error(`Error loading setting ${key}:`, error);
+    toast.error(`Failed to load ${key} setting`);
+    return defaultValue;
   }
 };
 
@@ -147,5 +221,6 @@ export const clearCache = (): void => {
     }
   } catch (error) {
     console.error('Error clearing cache:', error);
+    toast.error('Failed to clear cache');
   }
 };

@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { getSetting, saveSettings } from "@/utils/storage";
 
 // Define the accent colors
 const ACCENT_COLORS = [
@@ -27,36 +28,34 @@ const ACCENT_COLORS = [
 ];
 
 const SettingsPage = () => {
-  // Initialize states from localStorage at the component level
+  // Initialize states from localStorage with the new utility functions
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("darkMode") === "true";
+    return getSetting("darkMode", false);
   });
   
   const [notifications, setNotifications] = useState(() => {
-    return localStorage.getItem("notifications") !== "false";
+    return getSetting("notifications", true);
   });
   
   const [mangaUpdates, setMangaUpdates] = useState(() => {
-    return localStorage.getItem("mangaUpdates") !== "false";
+    return getSetting("mangaUpdates", true);
   });
   
   const [fontScale, setFontScale] = useState(() => {
-    const storedFontScale = localStorage.getItem("fontScale");
-    return storedFontScale ? [parseInt(storedFontScale)] : [100];
+    return [getSetting("fontScale", 100)];
   });
   
   const [accentColor, setAccentColor] = useState(() => {
-    return localStorage.getItem("accentColor") || "red";
+    return getSetting("accentColor", "red");
   });
   
   const [language, setLanguage] = useState(() => {
-    return localStorage.getItem("language") || "english";
+    return getSetting("language", "english");
   });
   
   const [showClearHistoryDialog, setShowClearHistoryDialog] = useState(false);
   const [readingHistory, setReadingHistory] = useState<string[]>(() => {
-    const storedHistory = localStorage.getItem("readingHistory");
-    return storedHistory ? JSON.parse(storedHistory) : [];
+    return getSetting("readingHistory", []);
   });
   
   // Apply theme immediately on mount and when darkMode state changes
@@ -66,13 +65,13 @@ const SettingsPage = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    localStorage.setItem("darkMode", darkMode.toString());
+    saveSettings("darkMode", darkMode);
   }, [darkMode]);
   
   // Apply font size when it changes
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontScale[0]}%`;
-    localStorage.setItem("fontScale", fontScale[0].toString());
+    saveSettings("fontScale", fontScale[0]);
   }, [fontScale]);
   
   // Apply accent color when it changes
@@ -82,44 +81,52 @@ const SettingsPage = () => {
       document.documentElement.style.setProperty('--accent', colorObj.color);
       document.documentElement.style.setProperty('--accent-foreground', '#ffffff');
     }
-    localStorage.setItem("accentColor", accentColor);
+    saveSettings("accentColor", accentColor);
   }, [accentColor]);
+  
+  // Save other settings when they change
+  useEffect(() => {
+    saveSettings("notifications", notifications);
+  }, [notifications]);
+  
+  useEffect(() => {
+    saveSettings("mangaUpdates", mangaUpdates);
+  }, [mangaUpdates]);
+  
+  useEffect(() => {
+    saveSettings("language", language);
+  }, [language]);
   
   // Save reading history when changed
   useEffect(() => {
-    localStorage.setItem("readingHistory", JSON.stringify(readingHistory));
+    saveSettings("readingHistory", readingHistory);
   }, [readingHistory]);
   
   const handleToggleDarkMode = () => {
     const newValue = !darkMode;
     setDarkMode(newValue);
-    localStorage.setItem("darkMode", newValue.toString());
     toast.success(newValue ? "Dark mode enabled" : "Light mode enabled");
   };
   
   const handleToggleNotifications = () => {
     const newValue = !notifications;
     setNotifications(newValue);
-    localStorage.setItem("notifications", newValue.toString());
     toast.success(notifications ? "Notifications disabled" : "Notifications enabled");
   };
   
   const handleToggleMangaUpdates = () => {
     const newValue = !mangaUpdates;
     setMangaUpdates(newValue);
-    localStorage.setItem("mangaUpdates", newValue.toString());
     toast.success(mangaUpdates ? "Manga updates disabled" : "Manga updates enabled");
   };
   
   const handleFontSizeChange = (value: number[]) => {
     setFontScale(value);
-    localStorage.setItem("fontScale", value[0].toString());
     toast.success(`Font size set to ${value[0]}%`);
   };
   
   const handleAccentColorChange = (color: string) => {
     setAccentColor(color);
-    localStorage.setItem("accentColor", color);
     
     const colorObj = ACCENT_COLORS.find(c => c.name === color);
     if (colorObj) {
@@ -132,14 +139,13 @@ const SettingsPage = () => {
   
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
-    localStorage.setItem("language", value);
     toast.success(`Language changed to ${value}`);
   };
   
   const handleClearHistory = () => {
     // Clear reading history
     setReadingHistory([]);
-    localStorage.setItem("readingHistory", JSON.stringify([]));
+    saveSettings("readingHistory", []);
     setShowClearHistoryDialog(false);
     toast.success("Reading history cleared");
   };
@@ -150,8 +156,6 @@ const SettingsPage = () => {
         title="Settings" 
         showBackButton={true}
         showSearch={false}
-        showSettings={false}
-        showFilter={false}
       />
       
       <main className="container px-4 py-6 space-y-6">
