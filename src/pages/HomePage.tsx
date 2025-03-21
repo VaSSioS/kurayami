@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AppHeader from "@/components/ui-components/AppHeader";
@@ -12,6 +13,7 @@ import CollectionTabs from "@/components/ui-components/CollectionTabs";
 import MangaGrid from "@/components/ui-components/MangaGrid";
 import { saveCollections, getCollections, saveActiveCollection, getActiveCollection, clearCache } from "@/utils/storage";
 import { Manga } from "@/types/manga";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const HomePage = () => {
   const { id: routeCollectionId } = useParams<{ id: string }>();
@@ -51,6 +53,8 @@ const HomePage = () => {
   } | null>(null);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [showRenameDialog, setShowRenameDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [collectionToDelete, setCollectionToDelete] = useState<string | null>(null);
 
   // Update route when active collection changes
   useEffect(() => {
@@ -101,6 +105,38 @@ const HomePage = () => {
     setEditingCollection(collection);
     setNewCollectionName(collection.name);
     setShowRenameDialog(true);
+  };
+
+  // Handle deleting a collection
+  const handleDeleteCollection = (collectionId: string) => {
+    setCollectionToDelete(collectionId);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteCollection = () => {
+    if (!collectionToDelete) return;
+    
+    // Filter out the collection to delete
+    const updatedCollections = collections.filter(
+      collection => collection.id !== collectionToDelete
+    );
+    
+    setCollections(updatedCollections);
+    saveCollections(updatedCollections);
+    
+    // If the active collection is the one being deleted, reset to "all"
+    if (activeCollection === collectionToDelete) {
+      setActiveCollection("all");
+      saveActiveCollection("all");
+      navigate("/", { replace: true });
+    }
+    
+    toast.success("Collection deleted successfully");
+    setShowDeleteDialog(false);
+    setCollectionToDelete(null);
+    
+    // Clear browser cache to prevent stale data
+    clearCache();
   };
 
   // Handle removing manga from collection
@@ -184,6 +220,7 @@ const HomePage = () => {
           activeCollection={activeCollection}
           setActiveCollection={setActiveCollection}
           onRenameClick={handleEditCollection}
+          onDeleteClick={handleDeleteCollection}
         />
 
         {/* Manga Grid Section */}
@@ -234,6 +271,29 @@ const HomePage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Collection Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Collection</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this collection? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteCollection}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNavigation />
     </div>

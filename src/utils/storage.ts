@@ -3,13 +3,16 @@
  * Utility functions for localStorage management
  */
 
+import { Heart, BookOpen, CheckSquare } from 'lucide-react';
+import { Collection } from '@/types/collection';
+
 // Collection storage
-export const saveCollections = (collections: any[]): void => {
+export const saveCollections = (collections: Collection[]): void => {
   try {
     // Serialize objects with special handling for React components (like icons)
     const serializableCollections = collections.map(collection => ({
       ...collection,
-      // Don't attempt to serialize the icon, just note if it exists
+      // Store icon name as a string identifier, not the component itself
       icon: collection.icon ? collection.icon.name || true : null
     }));
     
@@ -20,7 +23,7 @@ export const saveCollections = (collections: any[]): void => {
   }
 };
 
-export const getCollections = (): any[] => {
+export const getCollections = (): Collection[] => {
   try {
     const collections = localStorage.getItem('collections');
     if (!collections) return [];
@@ -28,10 +31,7 @@ export const getCollections = (): any[] => {
     // Parse and restore the collections
     const parsedCollections = JSON.parse(collections);
     
-    // Import icons
-    const { Heart, BookOpen, CheckSquare } = require('lucide-react');
-    
-    // Restore icon components based on the name
+    // Map icon strings back to icon components
     return parsedCollections.map((collection: any) => {
       let iconComponent = null;
       

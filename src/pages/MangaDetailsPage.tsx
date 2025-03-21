@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { BookOpen, Download, Bookmark, ChevronRight, ChevronDown, Check, Plus, Trash } from "lucide-react";
@@ -39,12 +38,16 @@ const MangaDetailsPage = () => {
     if (!manga) return;
     
     // Check which collection this manga belongs to
-    for (const collection of collections) {
-      if (collection.mangaIds && collection.mangaIds.includes(manga.id)) {
-        setActiveCollectionId(collection.id);
-        break;
-      }
-    }
+    const customCollections = collections.filter(collection => 
+      !["all", "favorites", "to-read", "completed"].includes(collection.id)
+    );
+    
+    // Find the first collection that contains this manga
+    const collectionWithManga = customCollections.find(
+      collection => collection.mangaIds && collection.mangaIds.includes(manga.id)
+    );
+    
+    setActiveCollectionId(collectionWithManga?.id || null);
   }, [manga, collections]);
   
   // Save collections to localStorage when they change
@@ -113,51 +116,55 @@ const MangaDetailsPage = () => {
   const handleSelectCollection = (collectionId: string) => {
     // Check if manga is already in this collection
     const collection = collections.find(c => c.id === collectionId);
-    const isAlreadyInCollection = collection?.mangaIds?.includes(manga.id);
+    if (!collection) return;
+    
+    const isAlreadyInCollection = collection.mangaIds?.includes(manga.id);
+    
+    let updatedCollections: Collection[];
     
     // If manga is already in collection, remove it
     if (isAlreadyInCollection) {
-      const updatedCollections = collections.map(c => 
+      updatedCollections = collections.map(c => 
         c.id === collectionId ? {
           ...c,
           mangaIds: c.mangaIds.filter(id => id !== manga.id)
         } : c
       );
       
-      setCollections(updatedCollections);
-      saveCollections(updatedCollections);
       setActiveCollectionId(null);
       toast.success(`Removed ${manga.title} from ${collection?.name}`);
     } else {
       // First, ensure all collections have a mangaIds array
-      const updatedCollections = collections.map(collection => ({
-        ...collection,
-        mangaIds: collection.mangaIds || []
+      const collectionsWithArrays = collections.map(c => ({
+        ...c,
+        mangaIds: c.mangaIds || []
       }));
       
-      // Then, remove manga from any existing collection
-      const collectionsWithMangaRemoved = updatedCollections.map(collection => ({
-        ...collection,
-        mangaIds: collection.mangaIds?.filter(id => id !== manga.id) || []
-      }));
+      // Then, remove manga from any existing custom collection
+      const customCollectionIds = collections
+        .filter(c => !["all", "favorites", "to-read", "completed"].includes(c.id))
+        .map(c => c.id);
       
-      // Then add it to the selected collection
-      const finalCollections = collectionsWithMangaRemoved.map(collection => 
-        collection.id === collectionId
-          ? { ...collection, mangaIds: [...(collection.mangaIds || []), manga.id] }
-          : collection
+      const collectionsWithMangaRemoved = collectionsWithArrays.map(c => 
+        customCollectionIds.includes(c.id) 
+          ? { ...c, mangaIds: c.mangaIds.filter(id => id !== manga.id) }
+          : c
       );
       
-      // Update collections state and localStorage
-      setCollections(finalCollections);
-      saveCollections(finalCollections);
-      setActiveCollectionId(collectionId);
+      // Then add it to the selected collection
+      updatedCollections = collectionsWithMangaRemoved.map(c => 
+        c.id === collectionId
+          ? { ...c, mangaIds: [...c.mangaIds, manga.id] }
+          : c
+      );
       
-      toast.success(`Added ${manga.title} to ${
-        finalCollections.find(c => c.id === collectionId)?.name || 'collection'
-      }`);
+      setActiveCollectionId(collectionId);
+      toast.success(`Added ${manga.title} to ${collection.name}`);
     }
     
+    // Update collections state and localStorage
+    setCollections(updatedCollections);
+    saveCollections(updatedCollections);
     setShowCollectionDialog(false);
   };
   
@@ -176,23 +183,28 @@ const MangaDetailsPage = () => {
     };
     
     // First, ensure all collections have a mangaIds array
-    const updatedCollections = collections.map(collection => ({
-      ...collection,
-      mangaIds: collection.mangaIds || []
+    const collectionsWithArrays = collections.map(c => ({
+      ...c,
+      mangaIds: c.mangaIds || []
     }));
     
-    // Remove manga from any existing collection
-    const collectionsWithMangaRemoved = updatedCollections.map(collection => ({
-      ...collection,
-      mangaIds: collection.mangaIds?.filter(id => id !== manga.id) || []
-    }));
+    // Remove manga from any existing custom collection
+    const customCollectionIds = collections
+      .filter(c => !["all", "favorites", "to-read", "completed"].includes(c.id))
+      .map(c => c.id);
+    
+    const collectionsWithMangaRemoved = collectionsWithArrays.map(c => 
+      customCollectionIds.includes(c.id) 
+        ? { ...c, mangaIds: c.mangaIds.filter(id => id !== manga.id) }
+        : c
+    );
     
     // Add the new collection
-    const finalCollections = [...collectionsWithMangaRemoved, newCollection];
+    const updatedCollections = [...collectionsWithMangaRemoved, newCollection];
     
     // Update collections state and localStorage
-    setCollections(finalCollections);
-    saveCollections(finalCollections);
+    setCollections(updatedCollections);
+    saveCollections(updatedCollections);
     setActiveCollectionId(newCollection.id);
     
     setShowCreateCollectionDialog(false);
@@ -349,7 +361,11 @@ const MangaDetailsPage = () => {
                   </span>
                   
                   <button
-                    onClick={() => handleDownloadChapter(chapter.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDownloadChapter(chapter.id);
+                    }}
                     className="p-1"
                   >
                     {chapter.isDownloaded ? (

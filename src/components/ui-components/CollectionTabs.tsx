@@ -3,8 +3,13 @@ import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreVertical } from "lucide-react";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { MoreVertical, Trash } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem 
+} from "@/components/ui/dropdown-menu";
 import { Collection } from "@/types/collection";
 
 interface CollectionTabsProps {
@@ -12,13 +17,15 @@ interface CollectionTabsProps {
   activeCollection: string;
   setActiveCollection: (value: string) => void;
   onRenameClick: (collection: { id: string; name: string }) => void;
+  onDeleteClick?: (collectionId: string) => void;
 }
 
 const CollectionTabs: React.FC<CollectionTabsProps> = ({
   collections,
   activeCollection,
   setActiveCollection,
-  onRenameClick
+  onRenameClick,
+  onDeleteClick
 }) => {
   return (
     <Tabs 
@@ -65,6 +72,15 @@ const CollectionTabs: React.FC<CollectionTabsProps> = ({
                     })}>
                       Rename
                     </DropdownMenuItem>
+                    {onDeleteClick && (
+                      <DropdownMenuItem 
+                        onClick={() => onDeleteClick(collection.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
