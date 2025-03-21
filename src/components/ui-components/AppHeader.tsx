@@ -9,6 +9,8 @@ interface AppHeaderProps {
   showBackButton?: boolean;
   showSearch?: boolean;
   showProfile?: boolean;
+  showSettings?: boolean;
+  showFilter?: boolean;
   className?: string;
   children?: React.ReactNode;
   onBackClick?: () => void;
@@ -21,6 +23,8 @@ const AppHeader = ({
   showBackButton = false,
   showSearch = true,
   showProfile = true,
+  showSettings = false,
+  showFilter = false,
   className,
   children,
   onBackClick,
