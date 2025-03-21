@@ -6,7 +6,15 @@
 // Collection storage
 export const saveCollections = (collections: any[]): void => {
   try {
-    localStorage.setItem('collections', JSON.stringify(collections));
+    // Serialize objects with special handling for React components (like icons)
+    const serializableCollections = collections.map(collection => ({
+      ...collection,
+      // Don't attempt to serialize the icon, just note if it exists
+      icon: collection.icon ? collection.icon.name || true : null
+    }));
+    
+    localStorage.setItem('collections', JSON.stringify(serializableCollections));
+    console.log('Collections saved successfully:', serializableCollections);
   } catch (error) {
     console.error('Error saving collections:', error);
   }
@@ -15,7 +23,32 @@ export const saveCollections = (collections: any[]): void => {
 export const getCollections = (): any[] => {
   try {
     const collections = localStorage.getItem('collections');
-    return collections ? JSON.parse(collections) : [];
+    if (!collections) return [];
+    
+    // Parse and restore the collections
+    const parsedCollections = JSON.parse(collections);
+    
+    // Import icons
+    const { Heart, BookOpen, CheckSquare } = require('lucide-react');
+    
+    // Restore icon components based on the name
+    return parsedCollections.map((collection: any) => {
+      let iconComponent = null;
+      
+      // Restore icon components for default collections
+      if (collection.id === 'favorites') {
+        iconComponent = Heart;
+      } else if (collection.id === 'to-read') {
+        iconComponent = BookOpen;
+      } else if (collection.id === 'completed') {
+        iconComponent = CheckSquare;
+      }
+      
+      return {
+        ...collection,
+        icon: iconComponent
+      };
+    });
   } catch (error) {
     console.error('Error loading collections:', error);
     return [];

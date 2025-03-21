@@ -38,7 +38,8 @@ const CollectionTabs: React.FC<CollectionTabsProps> = ({
                 value={collection.id} 
                 className="px-4 py-3 h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none transition-none flex gap-2 items-center"
               >
-                {collection.icon && React.createElement(collection.icon, { className: "w-4 h-4" })}
+                {collection.icon && typeof collection.icon === 'function' && 
+                  React.createElement(collection.icon, { className: "w-4 h-4" })}
                 <span>{collection.name}</span>
                 <Badge variant="secondary" className="ml-1">
                   {count}

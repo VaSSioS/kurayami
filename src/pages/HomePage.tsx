@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import AppHeader from "@/components/ui-components/AppHeader";
 import BottomNavigation from "@/components/ui-components/BottomNavigation";
 import { DEFAULT_COLLECTIONS, Collection } from "@/types/collection";
@@ -10,11 +10,14 @@ import { toast } from "sonner";
 import { mockManga } from "@/data/mockData";
 import CollectionTabs from "@/components/ui-components/CollectionTabs";
 import MangaGrid from "@/components/ui-components/MangaGrid";
-import { saveCollections, getCollections, saveActiveCollection, getActiveCollection } from "@/utils/storage";
+import { saveCollections, getCollections, saveActiveCollection, getActiveCollection, clearCache } from "@/utils/storage";
 import { Manga } from "@/types/manga";
 
 const HomePage = () => {
-  // Collections state with proper initialization
+  const { id: routeCollectionId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  
+  // Initialize collections state
   const [collections, setCollections] = useState<Collection[]>(() => {
     try {
       // First check for collections in localStorage
@@ -31,11 +34,17 @@ const HomePage = () => {
     }
   });
   
-  // Active collection state with proper initialization
+  // Initialize active collection state
   const [activeCollection, setActiveCollection] = useState<string>(() => {
+    // If there's a route parameter, use that
+    if (routeCollectionId) {
+      return routeCollectionId;
+    }
+    // Otherwise, get from localStorage or default to "all"
     return getActiveCollection() || "all";
   });
   
+  // State for managing collection edits
   const [editingCollection, setEditingCollection] = useState<{
     id: string;
     name: string;
@@ -43,9 +52,23 @@ const HomePage = () => {
   const [newCollectionName, setNewCollectionName] = useState("");
   const [showRenameDialog, setShowRenameDialog] = useState(false);
 
+  // Update route when active collection changes
+  useEffect(() => {
+    // Only update route if we're not already on the correct path
+    if (routeCollectionId !== activeCollection) {
+      if (activeCollection === "all") {
+        navigate("/", { replace: true });
+      } else {
+        navigate(`/collections/${activeCollection}`, { replace: true });
+      }
+    }
+  }, [activeCollection, navigate, routeCollectionId]);
+
   // Effect to save collections whenever they change
   useEffect(() => {
-    saveCollections(collections);
+    if (collections.length > 0) {
+      saveCollections(collections);
+    }
   }, [collections]);
 
   // Effect to save active collection whenever it changes
@@ -53,6 +76,7 @@ const HomePage = () => {
     saveActiveCollection(activeCollection);
   }, [activeCollection]);
 
+  // Handle renaming a collection
   const handleRenameCollection = () => {
     if (!editingCollection || !newCollectionName.trim()) return;
     
@@ -65,6 +89,7 @@ const HomePage = () => {
     );
     
     setCollections(updatedCollections);
+    saveCollections(updatedCollections); // Immediate save to ensure persistence
     toast.success(`Collection renamed to "${newCollectionName}"`);
     setShowRenameDialog(false);
     setEditingCollection(null);
@@ -92,6 +117,9 @@ const HomePage = () => {
     
     setCollections(updatedCollections);
     saveCollections(updatedCollections); // Immediate save to ensure persistence
+    
+    // Clear browser cache to prevent stale data
+    clearCache();
   };
 
   // Filter manga based on active collection
