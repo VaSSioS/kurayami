@@ -1,15 +1,13 @@
 
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft, Search, Settings, User } from "lucide-react";
+import { ChevronLeft, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AppHeaderProps {
   title?: string;
   showBackButton?: boolean;
   showSearch?: boolean;
-  showSettings?: boolean;
-  showFilter?: boolean;
   showProfile?: boolean;
   className?: string;
   children?: React.ReactNode;
@@ -22,8 +20,6 @@ const AppHeader = ({
   title,
   showBackButton = false,
   showSearch = true,
-  showSettings = true,
-  showFilter = false,
   showProfile = true,
   className,
   children,
@@ -33,14 +29,7 @@ const AppHeader = ({
 }: AppHeaderProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isHomePage = location.pathname === "/";
-  const isSourcesPage = location.pathname.startsWith("/sources");
-  const isSearchPage = location.pathname.startsWith("/search");
-  const isDownloadsPage = location.pathname.startsWith("/downloads");
-  const isHistoryPage = location.pathname.startsWith("/history");
-  
-  // Hide settings button from specific pages in header
-  const hideSettings = isSourcesPage || isDownloadsPage || isHistoryPage || isSearchPage;
+  const isHomePage = location.pathname === "/" || location.pathname.startsWith("/collections/");
   
   const handleBackClick = () => {
     if (onBackClick) {
@@ -83,15 +72,9 @@ const AppHeader = ({
           </Link>
         )}
         
-        {showProfile && isHomePage && (
+        {showProfile && (
           <Link to="/profile" className="p-2">
             <User className="w-5 h-5" />
-          </Link>
-        )}
-        
-        {showSettings && !hideSettings && (
-          <Link to="/settings" className="p-2">
-            <Settings className="w-5 h-5" />
           </Link>
         )}
       </div>

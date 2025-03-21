@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AppHeader from "@/components/ui-components/AppHeader";
@@ -35,6 +34,14 @@ const HomePage = () => {
       return DEFAULT_COLLECTIONS;
     }
   });
+  
+  // Ensure "all" collection always exists
+  useEffect(() => {
+    const hasAllCollection = collections.some(c => c.id === "all");
+    if (!hasAllCollection) {
+      setCollections(prev => [...prev, DEFAULT_COLLECTIONS[0]]);
+    }
+  }, [collections]);
   
   // Initialize active collection state
   const [activeCollection, setActiveCollection] = useState<string>(() => {
@@ -162,12 +169,6 @@ const HomePage = () => {
   const filteredManga = React.useMemo(() => {
     if (activeCollection === "all") {
       return mockManga;
-    } else if (activeCollection === "favorites") {
-      return mockManga.filter(m => m.isFavorite);
-    } else if (activeCollection === "to-read") {
-      return mockManga.filter(m => !m.isCompleted && !m.currentChapter);
-    } else if (activeCollection === "completed") {
-      return mockManga.filter(m => m.isCompleted);
     } else {
       // Find the collection
       const collection = collections.find(c => c.id === activeCollection);
@@ -181,20 +182,11 @@ const HomePage = () => {
 
   // Collection counts
   const allCount = mockManga.length;
-  const favoritesCount = mockManga.filter(m => m.isFavorite).length;
-  const toReadCount = mockManga.filter(m => !m.isCompleted && !m.currentChapter).length;
-  const completedCount = mockManga.filter(m => m.isCompleted).length;
 
   // Update collection counts
   const collectionsWithCounts = collections.map(collection => {
     if (collection.id === "all") {
       return { ...collection, count: allCount };
-    } else if (collection.id === "favorites") {
-      return { ...collection, count: favoritesCount };
-    } else if (collection.id === "to-read") {
-      return { ...collection, count: toReadCount };
-    } else if (collection.id === "completed") {
-      return { ...collection, count: completedCount };
     } else {
       return { 
         ...collection, 
@@ -209,7 +201,7 @@ const HomePage = () => {
         title="Library" 
         showBackButton={false} 
         showProfile={true}
-        showSettings={true}
+        showSettings={false}
         showSearch={true}
       />
 
@@ -230,14 +222,11 @@ const HomePage = () => {
           <MangaGrid 
             manga={filteredManga as Manga[]} 
             collectionId={activeCollection}
-            onRenameCollection={activeCollection !== "all" && 
-                                activeCollection !== "favorites" && 
-                                activeCollection !== "to-read" && 
-                                activeCollection !== "completed" ? 
-                                () => handleEditCollection({
-                                  id: activeCollection,
-                                  name: collections.find(c => c.id === activeCollection)?.name || ""
-                                }) : undefined}
+            onRenameCollection={activeCollection !== "all" ? 
+                              () => handleEditCollection({
+                                id: activeCollection,
+                                name: collections.find(c => c.id === activeCollection)?.name || ""
+                              }) : undefined}
             onRemoveFromCollection={handleRemoveFromCollection}
           />
         </section>

@@ -1,9 +1,7 @@
-
 /**
  * Utility functions for localStorage management
  */
 
-import { Heart, BookOpen, CheckSquare } from 'lucide-react';
 import { Collection } from '@/types/collection';
 
 // Collection storage
@@ -13,7 +11,7 @@ export const saveCollections = (collections: Collection[]): void => {
     const serializableCollections = collections.map(collection => ({
       ...collection,
       // Store icon name as a string identifier, not the component itself
-      icon: collection.icon ? collection.icon.name || true : null
+      icon: collection.icon ? collection.icon.name || null : null
     }));
     
     localStorage.setItem('collections', JSON.stringify(serializableCollections));
@@ -31,22 +29,10 @@ export const getCollections = (): Collection[] => {
     // Parse and restore the collections
     const parsedCollections = JSON.parse(collections);
     
-    // Map icon strings back to icon components
     return parsedCollections.map((collection: any) => {
-      let iconComponent = null;
-      
-      // Restore icon components for default collections
-      if (collection.id === 'favorites') {
-        iconComponent = Heart;
-      } else if (collection.id === 'to-read') {
-        iconComponent = BookOpen;
-      } else if (collection.id === 'completed') {
-        iconComponent = CheckSquare;
-      }
-      
       return {
         ...collection,
-        icon: iconComponent
+        icon: null // All icons will be null for consistency
       };
     });
   } catch (error) {

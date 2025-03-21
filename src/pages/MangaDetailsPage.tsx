@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { BookOpen, Download, Bookmark, ChevronRight, ChevronDown, Check, Plus, Trash } from "lucide-react";
@@ -39,7 +40,7 @@ const MangaDetailsPage = () => {
     
     // Check which collection this manga belongs to
     const customCollections = collections.filter(collection => 
-      !["all", "favorites", "to-read", "completed"].includes(collection.id)
+      collection.id !== "all"
     );
     
     // Find the first collection that contains this manga
@@ -142,7 +143,7 @@ const MangaDetailsPage = () => {
       
       // Then, remove manga from any existing custom collection
       const customCollectionIds = collections
-        .filter(c => !["all", "favorites", "to-read", "completed"].includes(c.id))
+        .filter(c => c.id !== "all")
         .map(c => c.id);
       
       const collectionsWithMangaRemoved = collectionsWithArrays.map(c => 
@@ -190,7 +191,7 @@ const MangaDetailsPage = () => {
     
     // Remove manga from any existing custom collection
     const customCollectionIds = collections
-      .filter(c => !["all", "favorites", "to-read", "completed"].includes(c.id))
+      .filter(c => c.id !== "all")
       .map(c => c.id);
     
     const collectionsWithMangaRemoved = collectionsWithArrays.map(c => 
@@ -226,7 +227,7 @@ const MangaDetailsPage = () => {
         title={manga.title}
         showBackButton={true}
         showSearch={false}
-        showSettings={true}
+        showSettings={false}
         showProfile={false}
       />
       
@@ -392,9 +393,8 @@ const MangaDetailsPage = () => {
           </DialogHeader>
           <div className="py-4 space-y-2">
             {collections.map(collection => {
-              // Skip default collections that are not meant for manual management
-              if (collection.id === "all" || collection.id === "favorites" || 
-                  collection.id === "to-read" || collection.id === "completed") {
+              // Skip all collection which is not meant for manual management
+              if (collection.id === "all") {
                 return null;
               }
               

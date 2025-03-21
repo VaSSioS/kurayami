@@ -36,7 +36,7 @@ const CollectionTabs: React.FC<CollectionTabsProps> = ({
     >
       <TabsList className="w-full h-12 bg-background rounded-none border-b border-border p-0 justify-start overflow-x-auto no-scrollbar">
         {collections.map((collection) => {
-          const isDefaultCollection = ["all", "favorites", "to-read", "completed"].includes(collection.id);
+          const isDefaultCollection = collection.id === "all";
           const count = collection.count || 0;
           
           return (
